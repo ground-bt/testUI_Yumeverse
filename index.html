@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FBF5EA">
+<title>Yumeverse 夢次元記帳｜UI 測試版</title>
+<style>
+:root{
+  --cream:#FBF5EA;--white:#fff;--ink:#3B322C;--soft:#7A6F66;--line:#E8DCCB;
+  --pink:#E8477F;--pinkDeep:#C42A62;--pinkLight:#F9C8DB;--pinkPale:#FDEDF3;
+  --green:#7FA03F;--greenDeep:#5A7A2C;--greenPale:#EDF2DC;
+  --blue:#79B0DC;--blueDeep:#376C95;--bluePale:#E9F4FC;
+  --orange:#F3A23F;--orangeDeep:#A95D1E;--orangePale:#FFF1DD;
+  --danger:#C65353;--dangerPale:#FBE7E7;--gray:#9A918A;--grayPale:#F1ECE6;
+  --line2:#00A64F;
+  --font:"Taipei Sans TC Beta","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#EDE6DA;color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(121,176,220,.6);outline-offset:2px}
+.hidden{display:none!important}
+
+/* ===== 測試工具列（App 外） ===== */
+.testbar{flex:none;position:relative;z-index:500;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;background:#3B322C;color:#fff;font-size:13px}
+.testbar b{font-weight:900;margin-right:4px}
+.testbar .seg{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.testbar .seg button{border:0;background:transparent;color:#fff;border-radius:999px;padding:6px 12px;font-weight:800}
+.testbar .seg button.on{background:#fff;color:var(--ink)}
+.testbar .tbtn{border:0;border-radius:999px;padding:7px 12px;font-weight:800;background:rgba(255,255,255,.14);color:#fff}
+.testbar .tbtn.pink{background:var(--pink)}
+.testbar .spacer{flex:1}
+@media(max-width:480px){.testbar{gap:6px;padding:6px 8px;font-size:12px}.testbar b{display:none}.testbar .seg button{padding:5px 9px}.testbar .tbtn{padding:6px 9px}}
+
+/* ===== App 外框 ===== */
+.stage{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start;padding:0}
+.stage.framed{padding:20px 12px 40px;overflow:auto}
+.device{position:relative;width:100%;height:100%;background:var(--cream);overflow:hidden;display:flex;flex-direction:column}
+.stage.framed .device{border-radius:36px;border:10px solid #2a2420;box-shadow:0 30px 60px rgba(0,0,0,.25)}
+.stage.iphone .device{width:390px;height:min(844px,calc(100vh - 106px))}
+.stage.ipad .device{width:min(1024px,100%);height:min(768px,calc(100vh - 106px));border-radius:28px}
+
+/* ===== 共用元件 ===== */
+.scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.page{padding:16px;max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.page.narrow{max-width:680px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 24px rgba(146,104,76,.08)}
+.card.tight{padding:10px}
+.title{font-size:19px;font-weight:900;margin:0;display:flex;align-items:center;gap:8px}
+.title .count{font-size:13px;color:#fff;background:var(--ink);border-radius:999px;padding:1px 8px}
+.title .count.zero{background:var(--gray)}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.muted{color:var(--soft)}
+.small{font-size:12px}
+.sub{font-size:14px}
+.strong{font-weight:900}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.divider{height:1px;background:var(--line);margin:4px 0}
+.btn{border:0;border-radius:999px;min-height:52px;padding:0 18px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;transition:transform .1s}
+.btn:active{transform:translateY(3px)}
+.btn.primary{background:var(--pink);color:#fff;box-shadow:0 4px 0 var(--pinkDeep)}
+.btn.green{background:var(--green);color:#fff;box-shadow:0 4px 0 var(--greenDeep)}
+.btn.secondary{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.danger-outline{background:#fff;color:var(--danger);border:1.5px solid var(--line)}
+.btn:disabled{background:#C9C1BB!important;box-shadow:none!important;color:#fff;cursor:not-allowed;border-color:transparent}
+.btn.secondary:disabled{background:#f4f1ec!important;color:var(--gray)}
+.cbtn{border:0;border-radius:999px;min-height:44px;padding:0 14px;font-weight:900;font-size:14px}
+.cbtn.green{background:var(--green);color:#fff}
+.cbtn.pinkline{background:var(--pinkPale);color:var(--pinkDeep)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:#fff;color:var(--soft);border-radius:999px;min-height:40px;padding:0 14px;font-weight:900;font-size:14px;white-space:nowrap}
+.chip.on{background:var(--pink);border-color:var(--pink);color:#fff}
+.chip .n{opacity:.75;margin-left:4px}
+.pchip{flex:none;display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:999px;min-height:48px;padding:4px 16px 4px 6px;font-weight:900}
+.pchip.on{background:var(--pink);border-color:var(--pink);color:#fff}
+.pchip .meta{display:flex;flex-direction:column;line-height:1.15;text-align:left}
+.pchip .meta small{font-size:11px;opacity:.8;font-weight:700}
+.avatar{flex:none;display:grid;place-items:center;border-radius:12px;font-weight:900;color:#fff}
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900;white-space:nowrap}
+.b-green{background:var(--greenPale);color:var(--greenDeep)}
+.b-blue{background:var(--bluePale);color:var(--blueDeep)}
+.b-orange{background:var(--orangePale);color:var(--orangeDeep)}
+.b-red{background:var(--dangerPale);color:var(--danger)}
+.b-gray{background:var(--grayPale);color:var(--soft)}
+.input{width:100%;min-height:50px;border:1.5px solid var(--line);border-radius:14px;padding:0 14px;background:#fff;font-size:16px}
+textarea.input{padding:12px 14px;min-height:80px;resize:vertical}
+.input.err{border-color:var(--danger)}
+.input.big{font-size:24px;font-weight:900;min-height:56px}
+label.lbl{display:block;font-size:13px;font-weight:900;margin-bottom:6px}
+.tile{border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;background:#fff;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tile .t{font-size:14px;font-weight:900;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font-size:24px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v.long{font-size:16px;white-space:normal;line-height:1.3}
+.mtile{border-radius:14px;padding:12px;background:var(--cream);display:flex;flex-direction:column;gap:4px}
+.mtile .t{font-size:12px;font-weight:900;color:var(--soft)}
+.mtile .v{font-size:19px;font-weight:900}
+.listrow{display:flex;align-items:center;gap:12px;padding:10px 4px;border:0;background:transparent;width:100%;text-align:left}
+.todo{display:flex;align-items:center;gap:12px;padding:10px;min-height:56px;border-radius:14px;background:var(--cream);border:0;width:100%;text-align:left}
+.todo .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.chev{color:var(--soft);font-weight:900}
+.photo{flex:none;border-radius:14px;display:grid;place-items:center;font-weight:900;text-align:center;line-height:1.1;overflow:hidden}
+.photo .h{font-size:22px}
+.empty{display:flex;gap:12px;align-items:center;color:var(--soft);font-weight:700;font-size:14px;padding:6px 0}
+.center-empty{text-align:center;padding:30px 16px;color:var(--soft)}
+.center-empty .big{font-size:40px;margin-bottom:6px}
+.notice{font-size:12px;font-weight:800;color:var(--soft)}
+.bar{height:8px;border-radius:99px;background:var(--grayPale);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:inherit}
+.seg2{display:flex;background:var(--grayPale);border-radius:12px;padding:3px}
+.seg2 button{flex:1;border:0;background:transparent;border-radius:10px;min-height:40px;font-weight:900;color:var(--soft)}
+.seg2 button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* ===== iPhone 版面 ===== */
+.navbar{flex:none;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 12px;background:rgba(251,245,234,.95);border-bottom:1px solid rgba(232,220,203,.8)}
+.navbar h1{font-size:18px;margin:0;font-weight:900;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navbar .side{width:76px;display:flex}
+.navbar .side.right{justify-content:flex-end}
+.navbar .back,.navbar .act{border:0;background:transparent;color:var(--pink);font-weight:900;min-height:44px;padding:0 4px}
+.tabbar{flex:none;display:grid;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:900;color:var(--soft);position:relative;min-height:48px;justify-content:center}
+.tabbar button .i{font-size:20px;filter:grayscale(1);opacity:.7}
+.tabbar button.on{color:var(--pink)}
+.tabbar button.on .i{filter:none;opacity:1}
+.tabbar .dot{position:absolute;top:2px;left:55%;background:var(--danger);color:#fff;border-radius:999px;font-size:10px;padding:0 5px;min-width:16px}
+.bottombar{flex:none;padding:8px 16px;background:rgba(255,255,255,.92);border-top:1px solid var(--line)}
+
+/* ===== iPad 版面 ===== */
+.padwrap{flex:1;display:flex;min-height:0}
+.sidebar{width:250px;flex:none;background:#fff;border-right:1.5px solid var(--line);display:flex;flex-direction:column;padding:18px 12px}
+.sidebar .brand{font-size:24px;font-weight:900;color:var(--pink);padding:0 8px 14px}
+.sidebar .grp{font-size:12px;font-weight:900;color:var(--soft);padding:12px 10px 4px}
+.sidebar .item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;border-radius:12px;min-height:46px;padding:0 10px;font-weight:900;color:var(--soft);text-align:left}
+.sidebar .item.on{background:var(--pinkPale);color:var(--pinkDeep)}
+.sidebar .item .n{margin-left:auto;background:var(--danger);color:#fff;border-radius:999px;font-size:11px;padding:0 6px}
+.sidebar .acct{margin-top:auto;display:flex;gap:10px;align-items:center;background:var(--cream);border-radius:14px;padding:10px}
+.padmain{flex:1;min-width:0;display:flex;flex-direction:column}
+.split{flex:1;display:flex;min-height:0}
+.split .left{width:390px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.split .right{flex:1;min-width:0;display:flex;flex-direction:column}
+.cartpanel{width:340px;flex:none;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;padding:16px;gap:12px}
+
+/* ===== 彈出畫面 ===== */
+.overlay{position:absolute;inset:0;z-index:100;background:rgba(59,50,44,.42);display:flex;align-items:flex-end;justify-content:center}
+.overlay.center{align-items:center;padding:20px}
+.sheet{background:var(--cream);width:100%;max-height:94%;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.sheet.anim{animation:up .2s ease}
+.overlay.center .sheet{max-width:640px;border-radius:22px;max-height:92%}
+.sheet.short{max-height:62%}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+.sheet .shead{display:flex;align-items:center;min-height:52px;padding:6px 12px;border-bottom:1px solid var(--line);background:#fff}
+.sheet .shead h2{flex:1;text-align:center;margin:0;font-size:17px;font-weight:900}
+.sheet .shead .side{width:70px}
+.sheet .shead button{border:0;background:transparent;color:var(--pink);font-weight:900;min-height:44px}
+.dialog{background:#fff;border-radius:18px;padding:20px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:12px;text-align:center}
+.dialog h3{margin:0;font-size:17px}
+.toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:300;max-width:calc(100% - 32px);width:max-content;padding:13px 18px;border-radius:999px;color:#fff;font-weight:900;font-size:14px;box-shadow:0 10px 24px rgba(0,0,0,.2);display:flex;gap:8px;align-items:center}
+.toast.anim{animation:drop .25s ease}
+@keyframes drop{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.toast.success{background:var(--greenDeep)}
+.toast.failure{background:var(--danger)}
+.toast.info{background:var(--ink)}
+.spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 測試任務面板 ===== */
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);background:#fff;z-index:600;box-shadow:-10px 0 30px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.drawer .dh{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.drawer .dh h3{margin:0;flex:1;font-size:16px}
+.drawer .db{flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.task{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--cream);font-size:14px;line-height:1.45}
+.task input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--pink)}
+.task.done{opacity:.6}
+.task .who{display:inline-block;font-size:11px;font-weight:900;color:var(--pinkDeep);background:var(--pinkPale);border-radius:999px;padding:0 7px;margin-right:4px}
+</style>
+</head>
+<body>
+
+<div class="testbar" id="testbar">
+  <b>🧪 UI 測試版</b>
+  <div class="seg" role="group" aria-label="預覽尺寸">
+    <button data-preview="auto" class="on">自動</button>
+    <button data-preview="iphone">iPhone</button>
+    <button data-preview="ipad">iPad</button>
+  </div>
+  <span class="spacer"></span>
+  <button class="tbtn pink" data-testid="openTasks" data-tbar="tasks">測試任務</button>
+  <button class="tbtn" data-tbar="reset">重置資料</button>
+</div>
+
+<div class="stage" id="stage">
+  <div class="device" id="device"></div>
+</div>
+
+<div class="drawer hidden" id="drawer"></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   Yumeverse 夢次元記帳 — UI 測試版（單一 HTML）
+   畫面與規則照 SwiftUI App（Packages/YumeverseCore）。資料只在這個分頁裡，重新整理就重置。
+   ========================================================================= */
+
+/* ---------- 小工具 ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DAY = 86400000;
+function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function atDay(offset, hour){ const x = addDays(startOfDay(new Date()), offset); x.setHours(hour||0); return x; }
+function daysBetween(a, b){ return Math.round((startOfDay(b) - startOfDay(a)) / DAY); }
+const WEEK = ["週日","週一","週二","週三","週四","週五","週六"];
+function fmtDay(d){ d = new Date(d); return `${d.getMonth()+1}月${d.getDate()}日（${WEEK[d.getDay()]}）`; }
+function fmtTime(d){ d = new Date(d); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; }
+function toInputDate(d){ d = new Date(d); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function fromInputDate(s){ const [y,m,dd] = s.split("-").map(Number); return new Date(y, m-1, dd); }
+const SYM = {TWD:"NT$", HKD:"HK$"};
+function money(n, cur){ if(n === null || n === undefined) return "尚未建立"; return `${SYM[cur||currency()]} ${Number(n).toLocaleString("en-US")}`; }
+function uniq(arr){ return [...new Set(arr)]; }
+const normalizeFan = s => String(s||"").trim().toUpperCase();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+class RuleError extends Error {}
+
+/* ---------- 測試資料（與 App 的 MockData／SalesMockData 相同） ---------- */
+const ACCOUNTS = [
+  {id:"company", password:"yume2026", name:"公司管理員", role:"company", hint:"結帳、對帳、庫存、會員、服裝租借"},
+  {id:"cocoa", password:"demo2026", name:"ここあ COCOA", role:"coser", coserId:"cocoa", hint:"結帳自己的商品、看自己的銷售"},
+  {id:"momo", password:"demo2026", name:"小桃（測試）", role:"coser", coserId:"momo", hint:"測試 Coser，有 6 項測試商品"}
+];
+const COSERS = [
+  {id:"cocoa", name:"ここあ／浣熊COCOA", short:"ここあ", initial:"こ", color:"#E8477F"},
+  {id:"momo", name:"小桃（測試）", short:"小桃", initial:"桃", color:"#F3A23F"},
+  {id:"rin", name:"阿凜（測試）", short:"阿凜", initial:"凜", color:"#79B0DC"}
+];
+
+function makeData(){
+  const costumes = [
+    ["C-17","萬用女僕裝","原創女僕","M",["頭飾","圍裙","蝴蝶結"],"#F9C8DB"],
+    ["C-30","初音 青花瓷旗袍","VOCALOID・初音未來","S",["髮飾","扇子"],"#79B0DC"],
+    ["C-9","真姬 約會服","范特西小羊窩","M",["帽子","包包"],"#F7E7A9"],
+    ["C-34","戰鬥女僕","原創","M",["頭飾","手套","腰帶","道具槍"],"#3B322C"],
+    ["C-18","小鳥警察","原創","S",["警帽","徽章"],"#79B0DC"],
+    ["C-13","魔法少女小圓","魔法少女小圓","S",["髮飾","手套","寶石"],"#F9C8DB"],
+    ["C-4","我英 高校體操服","我的英雄學院","M",[],"#C3D88E"],
+    ["C-5","阿良良木火憐","物語系列","M",["黃色連帽外套","黑色內搭","短褲"],"#F3A23F"],
+    ["C-7","疾走少年外套","原創","L",["外套"],"#7FA03F"],
+    ["C-8","真姬 未覺醒日常服","范特西小羊窩","M",["上衣","裙子"],"#FDEDF3"],
+    ["C-29","真希","咒術迴戰","M",["眼鏡","上衣","褲子"],"#46562A"],
+    ["C-40","研磨 NEKOMA 運動服","排球少年","L",["外套","運動褲"],"#C65353"]
+  ].map(([id,name,series,size,acc,tint]) => ({id, code:id, name, series, size, accessories:acc, tint, suspended:false, suspendReason:null}));
+  const c7 = costumes.find(c => c.id === "C-7"); c7.suspended = true; c7.suspendReason = "缺件：外套左邊口袋扣子掉了";
+
+  const wang = {name:"王小姐（測試）", phone:"0900-000-001"}, lin = {name:"林先生（測試）", phone:"0900-000-002"}, chen = {name:"陳同學（測試）", phone:null};
+  const rent = (order, i, costume, renter, lentDay, dueDay) => {
+    const id = `${order}-${i}`;
+    return {id, orderId:order, costumeId:costume, renter, lentAt:atDay(lentDay,14), dueDate:atDay(dueDay,0), status:"borrowed",
+            returnedAt:null, condition:null, conditionNote:null, events:[{kind:"lent", at:atDay(lentDay,14), by:"company", note:null}]};
+  };
+  const returned = (l, day, cond, note) => { l.status="returned"; l.returnedAt=atDay(day,16); l.condition=cond; l.conditionNote=note;
+    l.events.push({kind:"returned", at:atDay(day,16), by:"company", note:[COND[cond], note].filter(Boolean).join("：")}); return l; };
+  const loans = [
+    returned(rent("R-000",1,"C-13",wang,-30,-20), -21, "normal", null),
+    returned(rent("R-00A",1,"C-7",lin,-18,-12), -12, "missing", "外套左邊口袋扣子掉了"),
+    rent("R-001",1,"C-17",wang,-4,3), rent("R-001",2,"C-9",wang,-4,3),
+    rent("R-002",1,"C-30",lin,-10,-2),
+    rent("R-003",1,"C-34",chen,-7,0)
+  ];
+
+  const events = [
+    {id:"test", name:"測試場次（App 試用）", venue:"試用，不是正式場次", currency:"TWD", source:"App 測試用，資料不保存", opening:null, actual:null, qtyOnly:null},
+    {id:"kr07", name:"9/5 KR07 閃耀寫真即售會", venue:"台北", currency:"TWD", source:"Y-1 已報名・攤位費 5,000 已繳", opening:null, actual:null, qtyOnly:null},
+    {id:"ffrefund", name:"8/22–23 FF（退款應收）", venue:"台北・未錄取", currency:"TWD", source:"Y-1／Y-4 應收退款", opening:null, actual:null, qtyOnly:null},
+    {id:"cosforce", name:"8/8–9 Cosforce04", venue:"台北", currency:"TWD", source:"8/11 POS 銷售量截圖・只採數量（截圖價格不得使用）", opening:null, actual:null, qtyOnly:23},
+    {id:"hkcp", name:"7/24–28 香港動漫節 CP2026", venue:"香港會展 CK39", currency:"HKD", source:"五張現場銷貨紀錄表", opening:null, actual:null, qtyOnly:152}
+  ];
+  const themes = [
+    ["hanabi","cocoa","花火","《仮面遊戯》・崩壞：星穹鐵道","#C65353"],
+    ["frieren","cocoa","芙莉蓮","葬送的芙莉蓮","#C3D88E"],
+    ["original","cocoa","原創／妹妹本","新刊寫真本","#F9C8DB"],
+    ["soda","cocoa","索達／蘇打","既有商品","#79B0DC"],
+    ["liveparty","cocoa","Live Party","現場派對寫真本","#F3A23F"],
+    ["onsite","cocoa","現場加購／周邊","香港現場表正式價目","#F7E7A9"],
+    ["momo-jk","momo","小桃・原創 JK（測試）","測試商品","#F3A23F"],
+    ["momo-goods","momo","小桃・周邊（測試）","測試商品","#C3D88E"]
+  ].map(([id,coser,name,sub,tint]) => ({id, coserId:coser, name, subtitle:sub, tint}));
+  const P = (id, theme, name, note, twd, hkd, stock, digital) => ({id, themeId:theme, name, note, price:{TWD:twd, HKD:hkd}, stock:stock ?? null, digital:!!digital});
+  const products = [
+    P("hanabi-set","hanabi","花火套組","Cosforce04 有售出 1 組；售價未建",null,null),
+    P("hanabi-book","hanabi","花火寫真書・單書","香港現場正式價；台幣價未建",null,200),
+    P("hanabi-cheki","hanabi","花火拍本 Cheki Album","營運總表台幣價；香港現場價",500,130),
+    P("hanabi-digital","hanabi","花火電子檔","香港自訂品項紀錄；台幣價未建",null,150,null,true),
+    P("frieren-book","frieren","芙莉蓮寫真書・單書","台幣與香港現場價",1000,250),
+    P("frieren-book-digital","frieren","芙莉蓮單書＋電子檔","營運總表正式台幣價",1800,null),
+    P("frieren-folder","frieren","芙莉蓮 L 夾","台幣與香港現場價",250,70),
+    P("original-big-set","original","大套組","營運總表正式台幣價",2500,null),
+    P("original-small-set","original","小套組","營運總表正式台幣價",1700,null),
+    P("original-book","original","寫真書・單書","台幣與香港現場價",800,200),
+    P("original-digital","original","電子檔","營運總表正式台幣價",1000,null,null,true),
+    P("soda-book","soda","索達寫真書・單書","台幣與香港現場價",800,200),
+    P("soda-slide","soda","索達拍立卡 Slide Card","台幣與香港現場價",350,90),
+    P("soda-digital","soda","索達電子檔","Cosforce04 有數量紀錄；售價未建",null,null,null,true),
+    P("liveparty-book","liveparty","Live Party 寫真書","台幣價；香港現場表修正價",600,200),
+    P("phoebe-postcard","onsite","菲比明信片","香港現場正式價",null,75),
+    P("june-postcard","onsite","六月雨明信片","香港現場價；營運總表另列台幣價",200,75),
+    P("reze-postcard","onsite","蕾潔明信片","香港現場正式價",null,120),
+    P("old-cheki","onsite","舊拍","香港現場正式價",null,80),
+    P("scroll","onsite","掛軸海報","香港現場正式價",null,270),
+    P("momo-jk-book","momo-jk","JK 寫真書・單書","測試商品",600,null),
+    P("momo-jk-set","momo-jk","JK 套組（書＋拍立得）","測試商品",900,null),
+    P("momo-jk-digital","momo-jk","JK 電子寫真集","測試商品",400,null,null,true),
+    P("momo-cheki","momo-goods","簽名拍立得","測試商品・測試庫存",150,null,3),
+    P("momo-postcard","momo-goods","明信片 3 入","測試商品・測試庫存",120,null,20),
+    P("momo-badge","momo-goods","壓克力徽章","測試商品",80,null)
+  ];
+  const sales = [];
+  [["7/24",1770,900],["7/25",2020,1660],["7/26",820,1720],["7/27",1540,2460],["7/28",2485,1800]].forEach(([label,c,p]) => {
+    const k = label.replace("/","");
+    sales.push({id:`HK-${k}-COMPANY`, eventId:"hkcp", coserId:"cocoa", at:null, label, lines:[], total:c, currency:"HKD", payment:"recorded", status:"paid", memberId:null, summary:"公司商品收入・現場表", scope:"company", source:"正式帳務", by:"company"});
+    sales.push({id:`HK-${k}-PERSONAL`, eventId:"hkcp", coserId:"cocoa", at:null, label, lines:[], total:p, currency:"HKD", payment:"recorded", status:"paid", memberId:null, summary:"個人互動收入・不列公司損益", scope:"personal", source:"正式帳務", by:"company"});
+  });
+  sales.push({id:"FF-REFUND-1700", eventId:"ffrefund", coserId:"cocoa", at:null, label:"待收", lines:[], total:1700, currency:"TWD", payment:"credit", status:"outstanding", memberId:null, summary:"FF 未錄取報名費退款", scope:"company", source:"正式帳務", by:"company"});
+  return {costumes, loans, events, themes, products, sales, members:[], seq:{loan:0, sale:0}};
+}
+
+const COND = {normal:"正常", damaged:"有損壞", missing:"缺件"};
+let D = makeData();
+const PAY = {cash:"現金", transfer:"轉帳", linePay:"LINE Pay", credit:"賒帳", recorded:"現場表已收・方式未記"};
+const PAYICON = {cash:"💵", transfer:"⇄", linePay:"L", credit:"🧾", recorded:"📋"};
+const PAYCOLOR = {cash:"#5A7A2C", transfer:"#376C95", linePay:"#00A64F", credit:"#A95D1E", recorded:"#7A6F66"};
+const LOW = 5;
+
+/* ---------- 租借規則（照 LoanBook.swift） ---------- */
+const Loan = {
+  costume: id => D.costumes.find(c => c.id === id),
+  loan: id => D.loans.find(l => l.id === id),
+  active: costumeId => [...D.loans].reverse().find(l => l.costumeId === costumeId && l.status !== "returned"),
+  order: orderId => D.loans.filter(l => l.orderId === orderId),
+  due(l){ if(l.status === "returned") return {k:"returned", text:"已歸還"};
+    const d = daysBetween(new Date(), l.dueDate);
+    if(d > 0) return {k:"upcoming", d, text: d === 1 ? "明天到期" : `還有 ${d} 天`};
+    if(d === 0) return {k:"today", text:"今天到期"};
+    return {k:"overdue", d:-d, text:`逾期 ${-d} 天`}; },
+  status(c){ const l = Loan.active(c.id); if(l) return Loan.due(l).k === "overdue" ? "overdue" : "onLoan"; return c.suspended ? "suspended" : "available"; },
+  available: () => D.costumes.filter(c => Loan.status(c) === "available"),
+  activeLoans: () => D.loans.filter(l => l.status !== "returned").sort((a,b) => a.dueDate - b.dueDate),
+  finished: () => D.loans.filter(l => l.status === "returned").sort((a,b) => b.returnedAt - a.returnedAt),
+  overdue: () => Loan.activeLoans().filter(l => Loan.due(l).k === "overdue"),
+  dueSoon: () => Loan.activeLoans().filter(l => { const s = Loan.due(l); return s.k === "today" || (s.k === "upcoming" && s.d <= 1); }),
+  history: id => D.loans.filter(l => l.costumeId === id).sort((a,b) => b.lentAt - a.lentAt),
+  recentRenters(){ const seen = new Set(), out = [];
+    for(const l of [...D.loans].sort((a,b) => b.lentAt - a.lentAt)){ const k = l.renter.name+"|"+(l.renter.phone||""); if(!seen.has(k)){ seen.add(k); out.push(l.renter); } if(out.length === 6) break; }
+    return out; },
+  lend(ids, renter, due){
+    if(!isCompany()) throw new RuleError("這個帳號不能做這個操作。");
+    if(!ids.length) throw new RuleError("請至少選一套服裝。");
+    const name = renter.name.trim(); if(!name) throw new RuleError("請填寫租借人姓名。");
+    if(startOfDay(due) < startOfDay(new Date())) throw new RuleError("歸還日期不能早於今天。");
+    for(const id of ids){ const c = Loan.costume(id); const a = Loan.active(id);
+      if(a) throw new RuleError(`${c.code} ${c.name} 目前租給 ${a.renter.name}，還沒歸還，不能再出租。`);
+      if(c.suspended) throw new RuleError(`${c.code} ${c.name} 暫停出租，請先確認整理完成並恢復可出租。`); }
+    D.seq.loan++; const order = `R-NEW-${D.seq.loan}`; const now = new Date();
+    ids.forEach((id, i) => D.loans.push({id:`${order}-${i+1}`, orderId:order, costumeId:id, renter:{name, phone:(renter.phone||"").trim() || null},
+      lentAt:now, dueDate:startOfDay(due), status:"borrowed", returnedAt:null, condition:null, conditionNote:null, events:[{kind:"lent", at:now, by:S.user.id, note:null}]}));
+  },
+  confirmReturn(id, cond, note){
+    const l = Loan.loan(id); if(!l) throw new RuleError("找不到這筆租借紀錄，請重新整理後再試。");
+    if(l.status === "returned") throw new RuleError("這套服裝已經完成歸還。");
+    note = (note||"").trim(); if(cond !== "normal" && !note) throw new RuleError("請簡單寫下損壞或缺少的部分。");
+    l.status = "returned"; l.returnedAt = new Date(); l.condition = cond; l.conditionNote = note || null;
+    const text = [COND[cond], note].filter(Boolean).join("："); l.events.push({kind:"returned", at:new Date(), by:S.user.id, note:text});
+    if(cond !== "normal"){ const c = Loan.costume(l.costumeId); c.suspended = true; c.suspendReason = text; }
+  },
+  resume(id){ const c = Loan.costume(id); c.suspended = false; c.suspendReason = null; }
+};
+
+/* ---------- 銷售規則（照 SalesBook.swift） ---------- */
+const Sales = {
+  event: id => D.events.find(e => e.id === id),
+  theme: id => D.themes.find(t => t.id === id),
+  product: id => D.products.find(p => p.id === id),
+  sale: id => D.sales.find(s => s.id === id),
+  member: id => D.members.find(m => m.id === normalizeFan(id)),
+  coser: id => COSERS.find(c => c.id === id),
+  coserOf: p => Sales.theme(p.themeId)?.coserId,
+  visibleThemes: () => isCompany() ? D.themes : D.themes.filter(t => t.coserId === S.user.coserId),
+  sellerCosers(){ const ids = new Set(Sales.visibleThemes().map(t => t.coserId)); return COSERS.filter(c => ids.has(c.id)); },
+  productsOfCoser(cid){ const tids = new Set(Sales.visibleThemes().filter(t => t.coserId === cid).map(t => t.id)); return D.products.filter(p => tids.has(p.themeId)); },
+  visibleProducts(){ const tids = new Set(Sales.visibleThemes().map(t => t.id)); return D.products.filter(p => tids.has(p.themeId)); },
+  visibleSales(eventId, coserId){ return D.sales.filter(s => (isCompany() || s.coserId === S.user.coserId) && (!eventId || s.eventId === eventId) && (!coserId || s.coserId === coserId)).slice().reverse(); },
+  outstanding(eventId, coserId){ return Sales.visibleSales(eventId, coserId).filter(s => s.status === "outstanding"); },
+  lowStock(coserId){ return Sales.visibleProducts().filter(p => !p.digital && p.stock !== null && p.stock <= LOW && (!coserId || Sales.coserOf(p) === coserId)); },
+  uncounted(){ return Sales.visibleProducts().filter(p => !p.digital && p.stock === null); },
+  reconcile(eventId, coserId){
+    const e = Sales.event(eventId); if(!e) return null;
+    const list = Sales.visibleSales(eventId, coserId); const paid = list.filter(s => s.status === "paid");
+    const by = {}; paid.forEach(s => by[s.payment] = (by[s.payment]||0) + s.total);
+    const cash = by.cash || 0; const whole = !coserId;
+    const expected = e.opening === null ? null : e.opening + cash;
+    const variance = (expected === null || e.actual === null) ? null : e.actual - expected;
+    return {currency:e.currency, company:paid.filter(s => s.scope === "company").reduce((a,s) => a+s.total, 0),
+      personal:paid.filter(s => s.scope === "personal").reduce((a,s) => a+s.total, 0), by,
+      outstanding:list.filter(s => s.status === "outstanding").reduce((a,s) => a+s.total, 0),
+      opening: whole ? e.opening : null, cash, expected: whole ? expected : null, actual: whole ? e.actual : null, variance: whole ? variance : null};
+  },
+  coserSummaries(eventId){
+    return Sales.sellerCosers().map(c => { const paid = Sales.visibleSales(eventId, c.id).filter(s => s.status === "paid" && s.scope === "company");
+      return {coser:c, total:paid.reduce((a,s) => a+s.total, 0), count:paid.length, items:paid.reduce((a,s) => a+items(s), 0)}; })
+      .sort((a,b) => b.total - a.total);
+  },
+  salesOfMember: id => D.sales.filter(s => s.memberId === normalizeFan(id)).slice().reverse(),
+  spending(id){ const r = {}; Sales.salesOfMember(id).filter(s => s.status === "paid").forEach(s => r[s.currency] = (r[s.currency]||0) + s.total); return r; },
+  cartTotal(){ const cur = currency(); return S.cart.reduce((a,i) => a + (Sales.product(i.pid).price[cur] || 0) * i.qty, 0); },
+  checkout(payment, memberRaw){
+    const e = Sales.event(S.eventId); if(!S.cart.length) throw new RuleError("購物車是空的，請先選商品。");
+    const lines = []; let coser = null;
+    for(const i of S.cart){ const p = Sales.product(i.pid); const owner = Sales.coserOf(p);
+      if(!isCompany() && owner !== S.user.coserId) throw new RuleError("這個帳號不能做這個操作。");
+      if(coser && coser !== owner) throw new RuleError("一筆交易只能是同一位 Coser 的商品，請先結清目前的購物車。");
+      coser = owner; const price = p.price[e.currency];
+      if(price === null || price === undefined) throw new RuleError(`「${p.name}」在這個場次還沒有正式售價，不能結帳。`);
+      if(!p.digital && p.stock !== null && p.stock < i.qty) throw new RuleError(`「${p.name}」庫存只剩 ${p.stock} 件。`);
+      lines.push({pid:p.id, name:p.name, price, qty:i.qty}); }
+    const fan = normalizeFan(memberRaw) || null;
+    if(payment === "credit" && !fan) throw new RuleError("賒帳要先輸入粉絲 ID，之後才追得到。");
+    lines.forEach(l => { const p = Sales.product(l.pid); if(!p.digital && p.stock !== null) p.stock -= l.qty; });
+    if(fan && !Sales.member(fan)) D.members.push({id:fan, nickname:"", note:null, createdAt:new Date()});
+    D.seq.sale++; const sale = {id:`S-APP-${String(D.seq.sale).padStart(3,"0")}`, eventId:e.id, coserId:coser, at:new Date(), label:"", lines,
+      total:lines.reduce((a,l) => a + l.price*l.qty, 0), currency:e.currency, payment, status: payment === "credit" ? "outstanding" : "paid",
+      memberId:fan, summary:lines.map(l => `${l.name} ×${l.qty}`).join("・"), scope:"company", source:"App 操作", by:S.user.id};
+    D.sales.push(sale); return sale;
+  },
+  settle(id, method){ const s = Sales.sale(id); if(s.status !== "outstanding") throw new RuleError("這筆款項已經登記收到了。"); s.status = "paid"; s.payment = method; s.settledAt = new Date(); },
+  setStock(pid, n){ if(!(n >= 0)) throw new RuleError("請輸入 0 以上的整數金額。"); Sales.product(pid).stock = n; },
+  setCash(kind, n){ if(!(n >= 0)) throw new RuleError("請輸入 0 以上的整數金額。"); Sales.event(S.eventId)[kind === "opening" ? "opening" : "actual"] = n; },
+  addMember(id, nick, note){ const k = normalizeFan(id); if(!k) throw new RuleError("請輸入粉絲 ID。"); if(Sales.member(k)) throw new RuleError("這個粉絲 ID 已經是會員了。");
+    D.members.push({id:k, nickname:nick.trim(), note:note.trim() || null, createdAt:new Date()}); },
+  updateMember(id, nick, note){ const m = Sales.member(id); m.nickname = nick.trim(); m.note = note.trim() || null; }
+};
+const items = s => s.lines.reduce((a,l) => a + l.qty, 0);
+
+/* ---------- 畫面狀態 ---------- */
+const S = {
+  user:null, section:"home", stack:[], sheet:null, confirm:null, toast:null, busy:false,
+  eventId:"test", cart:[], cartMember:"", checkoutCoser:null, homeCoser:null,
+  costumeFilter:"all", costumeSearch:"", selCostume:null,
+  recTab:"active", recSearch:"", selLoan:null, themeFilter:null,
+  invFilter:"all", invCoser:null, memberSearch:"", preview:"auto", loginErr:null
+};
+const isCompany = () => S.user && S.user.role === "company";
+const currency = () => Sales.event(S.eventId)?.currency || "TWD";
+const coserName = id => Sales.coser(id)?.short || "";
+
+const SECTIONS = {
+  home:{title:"首頁", short:"首頁", icon:"🏠", group:"帳務"},
+  checkout:{title:"快速結帳", short:"結帳", icon:"🛍️", group:"帳務"},
+  reconcile:{title:"收銀對帳", short:"對帳", icon:"✅", group:"帳務"},
+  mySales:{title:"我的銷售", short:"銷售", icon:"📈", group:"帳務"},
+  costumes:{title:"服裝租借", short:"租借", icon:"👗", group:"服裝租借"},
+  records:{title:"租借紀錄", short:"紀錄", icon:"📋", group:"服裝租借"},
+  inventory:{title:"商品庫存", short:"庫存", icon:"📦", group:"商品與會員"},
+  members:{title:"會員管理", short:"會員", icon:"💗", group:"商品與會員"},
+  more:{title:"更多", short:"更多", icon:"⋯", group:"帳號"}
+};
+const sectionsFor = () => isCompany() ? ["home","checkout","reconcile","costumes","records","inventory","members","more"] : ["home","checkout","mySales","more"];
+const tabsFor = () => isCompany() ? ["home","checkout","reconcile","costumes","more"] : ["home","checkout","mySales","more"];
+const moreFor = () => sectionsFor().filter(s => !tabsFor().includes(s) && s !== "more");
+
+/* ---------- 版面判斷：依 App 外框寬度，不依螢幕 ---------- */
+const isPad = () => $("device").clientWidth >= 860;
+
+/* ---------- 共用片段 ---------- */
+function avatar(c, size){ size = size || 40; if(!c) return "";
+  const dark = ["#79B0DC","#F3A23F","#E8477F"].includes(c.color);
+  return `<span class="avatar" style="width:${size}px;height:${size}px;background:${c.color};font-size:${size*.45}px;border-radius:${size*.32}px;color:${dark?"#fff":"#3B322C"}">${esc(c.initial)}</span>`; }
+/** 服裝照片：沒有真實照片時用代表色＋編號。size 為數字（px）或 CSS 字串（例如 "width:100%;aspect-ratio:1"） */
+function photo(c, size){ size = size || 56;
+  const light = ["#F9C8DB","#F7E7A9","#C3D88E","#FDEDF3","#79B0DC","#F3A23F"].includes(c.tint);
+  const dim = typeof size === "number" ? `width:${size}px;height:${size}px;font-size:${Math.max(11,size*.2)}px` : size;
+  return `<span class="photo" style="${dim};background:linear-gradient(135deg,${c.tint},${c.tint}cc);color:${light?"#3B322C":"#fff"}"><span><span class="h">🧥</span><br>${esc(c.code)}</span></span>`; }
+const STATUS = {available:["可出租","b-green","✔"], onLoan:["出租中","b-blue","↗"], overdue:["逾期","b-red","⚠"], suspended:["暫停出租","b-gray","⏸"]};
+const statusBadge = st => `<span class="badge ${STATUS[st][1]}">${STATUS[st][2]} ${STATUS[st][0]}</span>`;
+function dueBadge(l){ const s = Loan.due(l);
+  const cls = s.k === "overdue" ? "b-red" : (s.k === "today" || (s.k === "upcoming" && s.d <= 1)) ? "b-orange" : s.k === "returned" ? "b-green" : "b-blue";
+  return `<span class="badge ${cls}">${s.text}</span>`; }
+function sectionTitle(t, n, color){ return `<h2 class="title" style="${color?`color:${color}`:""}">${esc(t)}${n === undefined ? "" : `<span class="count ${n?"":"zero"}" style="${n&&color?`background:${color}`:""}">${n}</span>`}</h2>`; }
+const emptyHint = (icon, t) => `<div class="empty"><span style="font-size:22px">${icon}</span>${esc(t)}</div>`;
+const busyLabel = (t, bt) => S.busy ? `<span class="spinner"></span>${esc(bt)}` : esc(t);
+const notice = () => `<div class="notice">ⓘ 測試版：不會真的收款，也不會寫回營運總表。</div>`;
+
+function eventPicker(){
+  return `<label class="lbl" for="eventSel" style="margin:0 0 -6px">場次</label>
+  <div class="row"><select id="eventSel" class="input" data-change="event" data-testid="eventPicker" style="flex:1;font-weight:900">
+    ${D.events.map(e => `<option value="${e.id}" ${e.id===S.eventId?"selected":""}>${esc(e.name)}・${e.currency}</option>`).join("")}
+  </select><span class="badge ${currency()==="HKD"?"b-blue":"b-green"}" style="font-size:13px">${currency()}</span></div>`;
+}
+function saleRow(s, showEvent){
+  const parts = []; if(showEvent) parts.push(Sales.event(s.eventId).name);
+  if(s.at) parts.push(fmtTime(s.at)); else if(s.label) parts.push(s.label);
+  parts.push(PAY[s.payment]); if(s.memberId) parts.push(`粉絲 ${s.memberId}`); if(s.source !== "App 操作") parts.push(s.source);
+  if(isCompany() && Sales.coser(s.coserId)) parts.push(coserName(s.coserId));
+  return `<div class="listrow" style="align-items:flex-start">
+    <span style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:${PAYCOLOR[s.payment]}1a;color:${PAYCOLOR[s.payment]};font-weight:900;flex:none">${PAYICON[s.payment]}</span>
+    <div style="flex:1;min-width:0"><div class="strong sub">${esc(s.summary)}</div><div class="muted small">${esc(parts.join("・"))}</div></div>
+    <div style="text-align:right"><div class="strong sub" style="${s.scope==="personal"?"color:var(--soft)":""}">${money(s.total, s.currency)}</div>
+    ${s.status==="outstanding" ? `<span class="badge b-orange">待收</span>` : s.scope==="personal" ? `<span class="badge b-gray">個人收入</span>` : ""}</div></div>`;
+}
+function loanRow(l, showRenter){
+  const c = Loan.costume(l.costumeId);
+  const sub = l.status === "returned" ? `${fmtDay(l.returnedAt)} 歸還` : `應還 ${fmtDay(l.dueDate)}`;
+  return `<div class="row" style="flex:1;min-width:0">${photo(c,56)}<div style="flex:1;min-width:0">
+    <div class="strong" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.code)} ${esc(c.name)}</div>
+    <div class="sub muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${showRenter===false?"":`<b style="color:var(--ink)">${esc(l.renter.name)}</b>・`}${sub}</div></div>${dueBadge(l)}</div>`;
+}
+/** 跳到某功能：底部有的分頁或 iPad → 切分頁；不在底部的 → 推一頁 */
+function jumpAttrs(section, extra){ return `data-act="jump" data-section="${section}" ${extra||""}`; }
+
+/* ======================= 畫面 ======================= */
+
+/* ----- 登入 ----- */
+function viewLogin(){
+  return `<div class="scroll"><div class="page narrow" style="max-width:520px;padding-top:28px">
+    <div style="text-align:center"><div style="font-size:40px;font-weight:900;color:var(--pink)">Yumeverse</div>
+      <div class="strong" style="font-size:20px">夢次元記帳</div>
+      <div class="muted sub">結帳、對帳、庫存、會員，還有服裝租借，都在這裡。</div></div>
+    <div class="card"><div class="strong" style="margin-bottom:10px">點選測試帳號，直接登入</div>
+      ${ACCOUNTS.map(a => `<button class="todo" style="margin-top:8px;min-height:64px" data-act="demoLogin" data-id="${a.id}" data-testid="demo-${a.id}" ${S.busy?"disabled":""}>
+        ${a.role==="company" ? `<span class="avatar" style="width:44px;height:44px;background:var(--pinkDeep);font-size:20px">🏢</span>` : avatar(Sales.coser(a.coserId),44)}
+        <div style="flex:1"><div class="strong">${esc(a.name)} <span class="badge ${a.role==="company"?"b-red":"b-green"}" style="font-size:10px;padding:1px 7px">${a.role==="company"?"公司":"Coser"}</span></div>
+        <div class="muted small">${esc(a.hint)}</div></div><span class="chev" style="color:var(--pink)">›</span></button>`).join("")}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="strong">或輸入帳號密碼</div>
+      <div><label class="lbl" for="acc">帳號</label><input id="acc" class="input" placeholder="例如 company" autocomplete="username" data-testid="accountField"></div>
+      <div><label class="lbl" for="pwd">密碼</label><input id="pwd" class="input" type="password" placeholder="輸入密碼" autocomplete="current-password" data-testid="passwordField"></div>
+      ${S.loginErr ? `<div class="strong sub" style="color:var(--danger)" data-testid="loginError">⚠ ${esc(S.loginErr)}</div>` : ""}
+      <button class="btn primary" data-act="login" data-testid="loginButton" ${S.busy?"disabled":""}>${busyLabel("登入","登入中…")}</button>
+    </div>
+    <div class="muted small" style="text-align:center">測試版：資料只存在這個分頁，重新整理就重置。</div>
+  </div></div>`;
+}
+
+/* ----- 公司首頁 ----- */
+function viewCompanyHome(){
+  const cid = S.homeCoser, sum = Sales.reconcile(S.eventId, cid), evSales = Sales.visibleSales(S.eventId, cid);
+  const paid = evSales.filter(s => s.status === "paid" && s.scope === "company"), out = Sales.outstanding(null, cid);
+  const sel = Sales.coser(cid), cosers = Sales.sellerCosers();
+  const tile = (t, v, color, bg, id) => `<button class="tile" style="background:${bg}" ${jumpAttrs("reconcile")} data-testid="tile-${id}"><span class="t">${esc(t)}</span><span class="v ${/^[NH]|^\d/.test(v)?"":"long"}" style="color:${color}">${esc(v)}</span></button>`;
+  let cash = "未設起始現金", cashColor = "var(--soft)";
+  if(sum.variance !== null){ cash = sum.variance === 0 ? "相符 ✓" : sum.variance > 0 ? `多 ${money(sum.variance)}` : `少 ${money(-sum.variance)}`; cashColor = sum.variance === 0 ? "var(--greenDeep)" : "var(--orangeDeep)"; }
+  else if(sum.expected !== null){ cash = money(sum.expected); cashColor = "var(--greenDeep)"; }
+  const todos = [];
+  if(out.length) todos.push(["outstanding","reconcile","🧾",`待收款項 ${out.length} 筆`,"收到後到對帳頁登記","#A95D1E"]);
+  if(!cid){ const od = Loan.overdue(); if(od.length) todos.push(["overdue","costumes","⚠️",`逾期租借 ${od.length} 套`, uniq(od.map(l => l.renter.name)).join("、"),"#C65353","overdue"]);
+    const ds = Loan.dueSoon(); if(ds.length) todos.push(["dueSoon","costumes","🔔",`今明兩天要歸還 ${ds.length} 套`, uniq(ds.map(l => l.renter.name)).join("、"),"#79B0DC","onLoan"]); }
+  const low = Sales.lowStock(cid); if(low.length) todos.push(["lowStock","inventory","📦",`庫存偏低 ${low.length} 項`, low.slice(0,3).map(p => p.name).join("、"),"#A95D1E"]);
+  const recent = evSales.slice(0,5);
+  const checkoutTitle = S.cart.length ? `繼續結帳（購物車 ${cartCount()} 件）` : sel ? `開始結帳・${sel.short}` : "開始結帳";
+  const ranking = cid ? [] : Sales.coserSummaries(S.eventId);
+  return `<div class="page">
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      ${eventPicker()}
+      ${cosers.length > 1 ? `<div class="chips">
+        <button class="pchip ${!cid?"on":""}" data-act="homeCoser" data-id="" data-testid="homeCoser-all"><span class="avatar" style="width:28px;height:28px;background:${!cid?"rgba(255,255,255,.25)":"var(--grayPale)"};color:inherit">▦</span>全部</button>
+        ${cosers.map(c => `<button class="pchip ${cid===c.id?"on":""}" data-act="homeCoser" data-id="${c.id}" data-testid="homeCoser-${c.id}">${avatar(c,28)}${esc(c.short)}</button>`).join("")}
+      </div>` : ""}
+      <button class="btn primary" ${jumpAttrs("checkout",'data-prep="1"')} data-testid="startCheckoutButton">🛍️ ${esc(checkoutTitle)}</button>
+      ${notice()}
+    </div>
+    <div class="grid">
+      ${tile(cid ? `${sel.short} 收入` : "公司收入", money(sum.company), "var(--pinkDeep)", "var(--pinkPale)", "收入")}
+      ${tile("交易筆數", `${paid.length} 筆`, "var(--ink)", "#fff", "交易筆數")}
+      ${cid ? tile("售出件數", `${paid.reduce((a,s) => a+items(s),0)} 件`, "var(--ink)", "#fff", "售出件數") : tile("錢箱", cash, cashColor, "var(--greenPale)", "錢箱")}
+      ${tile("本場待收", money(sum.outstanding), sum.outstanding ? "var(--orangeDeep)" : "var(--ink)", sum.outstanding ? "var(--orangePale)" : "#fff", "本場待收")}
+    </div>
+    ${ranking.length > 1 ? `<div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("各 Coser 本場收入")}
+      ${ranking.map(r => `<button class="todo" data-act="homeCoser" data-id="${r.coser.id}" data-testid="ranking-${r.coser.id}">${avatar(r.coser,40)}
+        <div style="flex:1"><div class="strong">${esc(r.coser.short)}</div><div class="muted small">${r.count} 筆・${r.items} 件</div></div>
+        <span class="strong" style="color:var(--pinkDeep)">${money(r.total)}</span><span class="chev">›</span></button>`).join("")}</div>` : ""}
+    ${paymentBreakdown(sum)}
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("待處理")}
+      ${todos.length ? todos.map(t => `<button class="todo" ${jumpAttrs(t[1], t[6] ? `data-cfilter="${t[6]}"` : "")} data-testid="todo-${t[0]}">
+        <span class="ic" style="background:${t[5]}1f;color:${t[5]}">${t[2]}</span><div style="flex:1;min-width:0"><div class="strong">${esc(t[3])}</div><div class="muted small">${esc(t[4])}</div></div><span class="chev">›</span></button>`).join("")
+        : emptyHint("✅","目前沒有待處理的事")}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">
+      <div class="between">${sectionTitle("最近交易")}<button class="cbtn pinkline" ${jumpAttrs("reconcile")} data-testid="seeAllSales">看全部</button></div>
+      ${recent.length ? recent.map((s,i) => saleRow(s) + (i < recent.length-1 ? `<div class="divider"></div>` : "")).join("") : emptyHint("📭", cid ? `這個場次還沒有 ${sel.short} 的交易` : "這個場次還沒有交易")}
+    </div>
+    ${!cid ? `<button class="btn secondary" data-act="openLend" data-testid="lendButton">👗 出租服裝</button>` : ""}
+  </div>`;
+}
+function paymentBreakdown(sum){
+  const rows = [[PAY.cash, sum.by.cash||0, PAYCOLOR.cash],[PAY.transfer, sum.by.transfer||0, PAYCOLOR.transfer],[PAY.linePay, sum.by.linePay||0, PAYCOLOR.linePay]];
+  if(sum.by.recorded) rows.push(["現場表已收（方式未記）", sum.by.recorded, PAYCOLOR.recorded]);
+  rows.push(["賒帳待收", sum.outstanding, PAYCOLOR.credit]);
+  const total = Math.max(1, rows.reduce((a,r) => a+r[1], 0));
+  return `<div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("收款方式")}
+    ${rows.map(r => `<div><div class="between sub"><b>${esc(r[0])}</b><b>${money(r[1])}</b></div>
+    <div class="bar" style="margin-top:4px"><i style="width:${r[1] ? Math.max(3, r[1]/total*100) : 0}%;background:${r[2]}"></i></div></div>`).join("")}</div>`;
+}
+
+/* ----- Coser 首頁 ----- */
+function viewCoserHome(){
+  const me = Sales.coser(S.user.coserId), sum = Sales.reconcile(S.eventId, null), list = Sales.visibleSales(S.eventId);
+  const sold = list.filter(s => s.status === "paid" && s.scope === "company").reduce((a,s) => a+items(s), 0);
+  const has = Sales.visibleThemes().length > 0;
+  return `<div class="page">
+    <div class="row">${avatar(me,54)}<div><div class="strong" style="font-size:22px">嗨，${esc(me.short)}</div>
+      <div class="muted sub">${has ? "今天也一起把帳記清楚" : "公司還沒建立你的商品"}</div></div></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">${eventPicker()}
+      <button class="btn primary" ${jumpAttrs("checkout")} data-testid="startCheckoutButton" ${has?"":"disabled"}>🛍️ ${S.cart.length ? `繼續結帳（購物車 ${cartCount()} 件）` : "開始結帳"}</button>${notice()}</div>
+    <div class="grid">
+      <div class="mtile" style="background:var(--pinkPale)"><span class="t">本場商品收入</span><span class="v" style="color:var(--pinkDeep)">${money(sum.company)}</span></div>
+      <div class="mtile" style="background:#fff;border:1px solid var(--line)"><span class="t">App 售出件數</span><span class="v">${sold} 件</span></div>
+      ${sum.personal ? `<div class="mtile" style="background:#fff;border:1px solid var(--line)"><span class="t">個人互動收入</span><span class="v muted">${money(sum.personal)}</span></div>` : ""}
+      ${sum.outstanding ? `<div class="mtile" style="background:var(--orangePale)"><span class="t">待收</span><span class="v" style="color:var(--orangeDeep)">${money(sum.outstanding)}</span></div>` : ""}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">
+      <div class="between">${sectionTitle("最近交易")}<button class="cbtn pinkline" ${jumpAttrs("mySales")} data-testid="seeMySales">看全部</button></div>
+      ${list.length ? list.slice(0,5).map(s => saleRow(s)).join(`<div class="divider"></div>`) : emptyHint("📭","這個場次還沒有你的交易")}
+    </div></div>`;
+}
+
+/* ----- 快速結帳 ----- */
+const cartCount = () => S.cart.reduce((a,i) => a+i.qty, 0);
+const qtyOf = pid => S.cart.find(i => i.pid === pid)?.qty || 0;
+function activeCoser(){
+  if(!isCompany()) return S.user.coserId;
+  if(S.cart.length) return Sales.coserOf(Sales.product(S.cart[0].pid));
+  const list = Sales.sellerCosers();
+  if(S.checkoutCoser && list.some(c => c.id === S.checkoutCoser)) return S.checkoutCoser;
+  return list[0]?.id;
+}
+function viewCheckout(){
+  const cid = activeCoser(), cosers = Sales.sellerCosers();
+  const themes = Sales.visibleThemes().filter(t => t.coserId === cid);
+  const shown = themes.filter(t => !S.themeFilter || t.id === S.themeFilter);
+  const cur = currency();
+  const productRow = p => {
+    const price = p.price[cur], q = qtyOf(p.id), sold = !p.digital && p.stock === 0, low = !p.digital && p.stock !== null && p.stock <= LOW;
+    const st = p.digital ? "數位商品" : sold ? "已售完" : p.stock !== null ? (low ? `剩 ${p.stock} 件` : `庫存 ${p.stock}`) : "未盤點";
+    return `<div class="row" style="padding:8px 6px">
+      <div style="flex:1;min-width:0"><div class="strong sub" style="${price==null?"color:var(--soft)":""}">${esc(p.name)}</div>
+      <div class="small" style="color:${sold||low?"var(--orangeDeep)":"var(--soft)"}">${st}</div></div>
+      ${price != null ? `<b style="color:var(--pinkDeep);white-space:nowrap">${money(price)}</b>` : `<span class="small muted strong">售價未建立</span>`}
+      ${q ? `<button class="avatar" style="width:40px;height:40px;border:0;border-radius:50%;background:var(--grayPale);color:var(--ink);font-size:20px" data-act="qty" data-id="${p.id}" data-d="-1" aria-label="減少 ${esc(p.name)}">−</button>
+      <b style="min-width:20px;text-align:center" data-testid="qty-${p.id}">${q}</b>` : ""}
+      <button class="avatar" style="width:44px;height:44px;border:0;border-radius:50%;background:${price==null||sold?"#d7d0ca":"var(--pink)"};font-size:22px" data-act="add" data-id="${p.id}" data-testid="add-${p.id}" aria-label="加入 ${esc(p.name)}" ${price==null||sold?"disabled":""}>＋</button></div>`;
+  };
+  const list = `<div class="page" style="max-width:760px">
+    ${eventPicker()}
+    ${isCompany() && cosers.length > 1 ? `<div><div class="strong sub" style="margin-bottom:8px">賣哪位 Coser 的商品？</div><div class="chips">
+      ${cosers.map(c => `<button class="pchip ${cid===c.id?"on":""}" data-act="checkoutCoser" data-id="${c.id}" data-testid="checkoutCoser-${c.id}">${avatar(c,36)}<span class="meta">${esc(c.short)}<small>${Sales.productsOfCoser(c.id).length} 項商品</small></span></button>`).join("")}
+    </div></div>` : ""}
+    ${notice()}
+    ${!themes.length ? `<div class="center-empty"><div class="big">🛍️</div><b>目前沒有你的商品</b><div>公司建立你的商品後，就可以在這裡結帳。</div></div>` : `
+    <div class="chips"><button class="chip ${!S.themeFilter?"on":""}" data-act="theme" data-id="">全部</button>
+      ${themes.map(t => `<button class="chip ${S.themeFilter===t.id?"on":""}" data-act="theme" data-id="${t.id}" data-testid="theme-${t.id}">${esc(t.name)}</button>`).join("")}</div>
+    ${shown.map(t => `<div style="display:flex;flex-direction:column;gap:8px"><div class="row"><span style="width:8px;height:28px;border-radius:4px;background:${t.tint}"></span>
+      <div><div class="strong">${esc(t.name)}</div><div class="small muted">${esc(t.subtitle)}</div></div></div>
+      <div class="card tight">${D.products.filter(p => p.themeId === t.id).map(productRow).join(`<div class="divider"></div>`)}</div></div>`).join("")}`}
+  </div>`;
+  if(isPad()){
+    return `<div class="split"><div class="scroll">${list}</div><div class="cartpanel">
+      <div class="between"><h2 class="title">本次結帳</h2>${S.cart.length ? `<button class="cbtn" style="background:transparent;color:var(--soft)" data-act="clearCart">清空</button>` : ""}</div>
+      ${S.cart.length ? `<div class="scroll">${cartLines()}</div><div class="divider"></div>
+        <div class="between"><b>合計</b><b style="font-size:24px;color:var(--pinkDeep)">${money(Sales.cartTotal())}</b></div>
+        <button class="btn primary" data-act="openPayment" data-testid="goToPaymentButton">💳 前往收款</button>`
+        : `<div class="center-empty" style="margin:auto"><div class="big">🛍️</div>點商品右邊的「＋」加入</div>`}
+    </div></div>`;
+  }
+  return `<div class="scroll">${list}</div>${S.cart.length ? `<div class="bottombar"><button class="btn primary" data-act="openPayment" data-testid="goToPaymentButton">
+    <span class="badge" style="background:rgba(255,255,255,.25);color:#fff">${cartCount()} 件</span> ${money(Sales.cartTotal())}<span style="flex:1"></span>前往收款 ›</button></div>` : ""}`;
+}
+function cartLines(){
+  return S.cart.map(i => { const p = Sales.product(i.pid); return `<div class="row" style="min-height:48px">
+    <div style="flex:1;min-width:0"><div class="strong sub">${esc(p.name)}</div><div class="small muted">${money(p.price[currency()])}</div></div>
+    <button class="cbtn" style="background:var(--grayPale);min-width:44px" data-act="qty" data-id="${p.id}" data-d="-1" aria-label="減少">−</button>
+    <b style="min-width:22px;text-align:center">${i.qty}</b>
+    <button class="cbtn" style="background:var(--pinkPale);color:var(--pinkDeep);min-width:44px" data-act="add" data-id="${p.id}" aria-label="增加">＋</button></div>`; }).join("");
+}
+
+/* ----- 收銀對帳 ----- */
+function viewReconcile(){
+  const sum = Sales.reconcile(S.eventId, null), e = Sales.event(S.eventId), list = Sales.visibleSales(S.eventId), out = Sales.outstanding();
+  const cashRow = (t, v, kind) => `<button class="todo" style="min-height:50px" data-act="cashEntry" data-kind="${kind}" data-testid="cashEntry-${kind}">
+    <b style="flex:1">${t}</b><b style="color:${v==null?"var(--pink)":"var(--ink)"}">${v==null?"點一下輸入":money(v)}</b><span style="color:var(--pink)">✎</span></button>`;
+  let vt, vc, vb;
+  if(sum.variance === null){ vt = sum.expected === null ? "輸入起始現金和實點後，自動算差額" : "輸入收攤實點後，自動算差額"; vc = "var(--soft)"; vb = "var(--grayPale)"; }
+  else if(sum.variance === 0){ vt = "✓ 現金完全相符"; vc = "var(--greenDeep)"; vb = "var(--greenPale)"; }
+  else { vt = sum.variance > 0 ? `多 ${money(sum.variance)}` : `少 ${money(-sum.variance)}`; vc = "var(--orangeDeep)"; vb = "var(--orangePale)"; }
+  const mt = (t, v, color, bg) => `<div class="mtile" style="background:${bg||"var(--cream)"}"><span class="t">${esc(t)}</span><span class="v" style="color:${color||"var(--ink)"}">${esc(v)}</span></div>`;
+  return `<div class="page" style="max-width:900px">
+    ${eventPicker()}
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("現金箱")}
+      <div class="muted small">只有明確記為「現金」的收款會算進錢箱；紙本沒記付款方式的不算。</div>
+      ${cashRow("起始現金", sum.opening, "opening")}
+      <div class="between sub"><span>＋ 現金銷售</span><b>${money(sum.cash)}</b></div><div class="divider"></div>
+      <div class="between"><b>預估錢箱</b><b style="font-size:19px;color:${sum.expected==null?"var(--soft)":"var(--greenDeep)"}">${sum.expected==null?"先輸入起始現金":money(sum.expected)}</b></div>
+      ${cashRow("收攤實點", sum.actual, "actual")}
+      <div class="strong" style="text-align:center;padding:12px;border-radius:12px;background:${vb};color:${vc}" data-testid="varianceText">${vt}</div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("本場收入")}
+      <div class="grid">${mt("公司商品收入", money(sum.company), "var(--pinkDeep)", "var(--pinkPale)")}
+        ${sum.personal ? mt("個人互動收入（不列公司損益）", money(sum.personal), "var(--soft)") : ""}
+        ${["cash","transfer","linePay"].map(k => mt(PAY[k], money(sum.by[k]||0), PAYCOLOR[k])).join("")}
+        ${sum.by.recorded ? mt(PAY.recorded, money(sum.by.recorded), PAYCOLOR.recorded) : ""}
+        ${mt("本場待收", money(sum.outstanding), sum.outstanding?"var(--orangeDeep)":"var(--ink)", sum.outstanding?"var(--orangePale)":"")}</div>
+      ${e.qtyOnly ? `<div class="small strong muted">#️⃣ 正式紀錄另有 ${e.qtyOnly} 件只採數量、沒有金額。</div>` : ""}
+      <div class="small muted">來源：${esc(e.source)}</div></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:8px">${sectionTitle("待收款項（所有場次）", out.length, "var(--orangeDeep)")}
+      ${out.length ? out.map(s => `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${saleRow(s,true)}
+        <button class="cbtn green" data-act="settle" data-id="${s.id}" data-testid="settle-${s.id}">登記已收到</button></div>`).join(`<div class="divider"></div>`) : emptyHint("✅","沒有待收的款項")}</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">${sectionTitle("本場交易明細", list.length)}
+      ${list.length ? list.map(s => saleRow(s)).join(`<div class="divider"></div>`) : emptyHint("📭","這個場次還沒有交易")}</div>
+  </div>`;
+}
+
+/* ----- 我的銷售（Coser） ----- */
+function viewMySales(){
+  const sum = Sales.reconcile(S.eventId, null), list = Sales.visibleSales(S.eventId), e = Sales.event(S.eventId);
+  const sold = list.filter(s => s.status === "paid" && s.scope === "company").reduce((a,s) => a+items(s), 0);
+  return `<div class="page" style="max-width:760px">${eventPicker()}
+    <div class="grid"><div class="mtile" style="background:var(--pinkPale)"><span class="t">商品收入</span><span class="v" style="color:var(--pinkDeep)">${money(sum.company)}</span></div>
+      <div class="mtile" style="background:#fff;border:1px solid var(--line)"><span class="t">本 App 售出件數</span><span class="v">${sold} 件</span></div>
+      ${sum.personal ? `<div class="mtile" style="background:#fff;border:1px solid var(--line)"><span class="t">個人互動收入</span><span class="v muted">${money(sum.personal)}</span></div>` : ""}
+      ${sum.outstanding ? `<div class="mtile" style="background:var(--orangePale)"><span class="t">待收</span><span class="v" style="color:var(--orangeDeep)">${money(sum.outstanding)}</span></div>` : ""}</div>
+    ${e.qtyOnly ? `<div class="small strong muted">#️⃣ 正式紀錄另有 ${e.qtyOnly} 件只採數量、沒有金額。</div>` : ""}
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">${sectionTitle("交易紀錄", list.length)}
+      ${list.length ? list.map(s => saleRow(s)).join(`<div class="divider"></div>`) : emptyHint("📭","這個場次還沒有你的交易")}</div></div>`;
+}
+
+/* ----- 服裝租借 ----- */
+const CFILTERS = [["all","全部"],["available","可出租"],["onLoan","出租中"],["overdue","逾期"],["suspended","暫停出租"]];
+const cfMatch = (f, st) => f === "all" || (f === "onLoan" ? (st === "onLoan" || st === "overdue") : f === st);
+function filteredCostumes(){
+  const k = S.costumeSearch.trim().toLowerCase(), order = ["overdue","onLoan","available","suspended"];
+  return D.costumes.filter(c => cfMatch(S.costumeFilter, Loan.status(c)) && (!k || (c.code+c.name+c.series).toLowerCase().includes(k)))
+    .sort((a,b) => order.indexOf(Loan.status(a)) - order.indexOf(Loan.status(b)) || a.code.localeCompare(b.code, undefined, {numeric:true}));
+}
+function viewCostumes(){
+  const list = filteredCostumes(), pad = isPad();
+  const top = `<input class="input" placeholder="🔍 搜尋編號、名稱或作品" value="${esc(S.costumeSearch)}" data-input="costumeSearch" id="costumeSearch">
+    <div class="chips">${CFILTERS.map(([k,l]) => `<button class="chip ${S.costumeFilter===k?"on":""}" data-act="cfilter" data-id="${k}" data-testid="filter-${k}">${l}<span class="n">${D.costumes.filter(c => cfMatch(k, Loan.status(c))).length}</span></button>`).join("")}</div>`;
+  const holder = c => { const l = Loan.active(c.id); if(!l) return Loan.status(c) === "suspended" ? "需要整理" : c.series; return `${l.renter.name}・${Loan.due(l).text}`; };
+  if(!list.length) var emptyHtml = `<div class="center-empty"><div class="big">🔍</div><b>沒有符合的服裝</b><div>試試其他關鍵字，或改選「全部」。</div><br><button class="cbtn pinkline" data-act="cfilterReset">顯示全部服裝</button></div>`;
+  if(pad){
+    const selId = S.selCostume && list.some(c => c.id === S.selCostume) ? S.selCostume : list[0]?.id;
+    return `<div class="split"><div class="left"><div class="scroll"><div class="page" style="gap:12px">${top}
+      ${list.length ? list.map(c => `<button class="listrow" style="border-radius:16px;padding:10px;background:${c.id===selId?"var(--pinkPale)":"#fff"};border:${c.id===selId?"2px solid var(--pink)":"1px solid var(--line)"}" data-act="selCostume" data-id="${c.id}" data-testid="costume-${c.id}">
+        ${photo(c,56)}<div style="flex:1;min-width:0"><div class="strong">${esc(c.code)} ${esc(c.name)}</div><div class="small muted">${esc(holder(c))}</div></div>${statusBadge(Loan.status(c))}</button>`).join("") : emptyHtml}
+      </div></div></div><div class="right"><div class="scroll">${selId ? costumeDetail(selId) : `<div class="center-empty">請從左邊選一套服裝</div>`}</div></div></div>`;
+  }
+  return `<div class="scroll"><div class="page">${top}
+    ${list.length ? `<div class="grid">${list.map(c => `<button class="tile" style="padding:10px;gap:8px" data-act="push" data-view="costumeDetail" data-id="${c.id}" data-testid="costume-${c.id}">
+      <div style="position:relative">${photo(c,"width:100%;aspect-ratio:1;font-size:15px")}<span style="position:absolute;top:8px;left:8px">${statusBadge(Loan.status(c))}</span></div>
+      <div class="strong sub" style="color:var(--ink)">${esc(c.code)} ${esc(c.name)}</div><div class="small" style="color:${Loan.status(c)==="overdue"?"var(--danger)":"var(--soft)"}">${esc(holder(c))}</div></button>`).join("")}</div>` : emptyHtml}
+  </div></div>`;
+}
+function costumeDetail(id){
+  const c = Loan.costume(id), st = Loan.status(c), l = Loan.active(id), hist = Loan.history(id);
+  let action = "";
+  if(st === "available") action = `<div class="strong" style="color:var(--greenDeep)">✔ 在公司，可以出租</div><button class="btn primary" data-act="openLend" data-id="${c.id}" data-testid="lendThisButton">👗 出租這套服裝</button>`;
+  else if(st === "suspended") action = `<div class="strong muted">⏸ 暫停出租</div><div class="sub">${esc(c.suspendReason||"")}</div>
+    <button class="btn green" data-act="resume" data-id="${c.id}" data-testid="resumeButton" ${S.busy?"disabled":""}>${busyLabel("↺ 整理完成，恢復可出租","處理中…")}</button>`;
+  else action = `<div class="row"><span style="font-size:36px">👤</span><div style="flex:1"><div class="strong">租給 ${esc(l.renter.name)}</div><div class="sub muted">應還 ${fmtDay(l.dueDate)}</div></div>${dueBadge(l)}</div>
+    ${l.renter.phone ? `<div class="sub strong muted">📞 ${esc(l.renter.phone)}</div>` : ""}
+    <button class="btn green" data-act="confirmReturn" data-id="${l.id}" data-testid="confirmReturnButton">✔ 收回，確認歸還</button>`;
+  return `<div class="page narrow">
+    <div style="position:relative">${photo(c,"width:100%;height:260px;border-radius:22px;font-size:34px")}<span style="position:absolute;top:12px;left:12px">${statusBadge(st)}</span></div>
+    <div><div class="strong" style="font-size:22px">${esc(c.code)} ${esc(c.name)}</div><div class="muted sub">${esc(c.series)}</div>
+      <div class="chips" style="margin-top:6px">${c.size?`<span class="badge b-gray">尺寸 ${esc(c.size)}</span>`:""}${c.accessories.map(a => `<span class="badge b-gray">${esc(a)}</span>`).join("")}</div></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">${action}</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">${sectionTitle("租借紀錄", hist.length)}
+      ${hist.length ? hist.map(h => `<button class="listrow" data-act="push" data-view="loanDetail" data-id="${h.id}">${loanRow(h)}</button>`).join(`<div class="divider"></div>`) : emptyHint("📭","還沒有出租過")}</div></div>`;
+}
+function viewRecords(){
+  const k = S.recSearch.trim().toLowerCase();
+  let list = S.recTab === "active" ? Loan.activeLoans() : Loan.finished();
+  if(k) list = list.filter(l => { const c = Loan.costume(l.costumeId); return (l.renter.name + (l.renter.phone||"") + c.code + c.name).toLowerCase().includes(k); });
+  const pad = isPad(), selId = pad ? (S.selLoan && list.some(l => l.id === S.selLoan) ? S.selLoan : list[0]?.id) : null;
+  const left = `<div class="page" style="gap:12px"><input class="input" placeholder="🔍 搜尋租借人、電話或服裝" value="${esc(S.recSearch)}" data-input="recSearch" id="recSearch">
+    <div class="seg2"><button class="${S.recTab==="active"?"on":""}" data-act="recTab" data-id="active">出租中</button><button class="${S.recTab==="done"?"on":""}" data-act="recTab" data-id="done">已歸還</button></div>
+    <div class="card tight">${list.length ? list.map(l => `<button class="listrow" style="border-radius:12px;padding:10px 8px;background:${l.id===selId?"var(--pinkPale)":"transparent"}" ${pad?`data-act="selLoan"`:`data-act="push" data-view="loanDetail"`} data-id="${l.id}" data-testid="record-${l.id}">${loanRow(l)}</button>`).join(`<div class="divider"></div>`)
+      : emptyHint("📭", k ? "找不到符合的紀錄" : S.recTab === "active" ? "目前沒有出租中的服裝" : "還沒有已歸還的紀錄")}</div></div>`;
+  if(pad) return `<div class="split"><div class="left"><div class="scroll">${left}</div></div><div class="right"><div class="scroll">${selId ? loanDetail(selId) : `<div class="center-empty">沒有紀錄</div>`}</div></div></div>`;
+  return `<div class="scroll">${left}</div>`;
+}
+function loanDetail(id){
+  const l = Loan.loan(id), c = Loan.costume(l.costumeId), same = Loan.order(l.orderId).filter(x => x.id !== l.id);
+  return `<div class="page narrow">
+    <div class="card row">${photo(c,96)}<div><div class="strong" style="font-size:19px">${esc(c.code)} ${esc(c.name)}</div><div class="muted sub">${esc(c.series)}</div>${dueBadge(l)}</div></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <div class="row"><span style="font-size:30px">👤</span><div><div class="strong">${esc(l.renter.name)}</div>${l.renter.phone?`<div class="muted sub">${esc(l.renter.phone)}</div>`:""}</div></div><div class="divider"></div>
+      ${[["租借單", l.orderId],["出租日", fmtDay(l.lentAt)],["應歸還日", fmtDay(l.dueDate)],["目前狀態", l.status==="returned"?"已歸還":"出租中"]].map(([a,b]) => `<div class="between sub"><span class="muted">${a}</span><b>${esc(b)}</b></div>`).join("")}
+      ${l.condition ? `<div class="between sub"><span class="muted">歸還狀況</span><b style="color:${l.condition==="normal"?"var(--greenDeep)":"var(--danger)"}">${COND[l.condition]}</b></div>` : ""}
+      ${l.conditionNote ? `<div class="between sub"><span class="muted">狀況說明</span><b>${esc(l.conditionNote)}</b></div>` : ""}</div>
+    ${l.status === "borrowed" ? `<button class="btn green" data-act="confirmReturn" data-id="${l.id}" data-testid="confirmReturnButton">✔ 收回，確認歸還</button>` : ""}
+    ${same.length ? `<div class="card" style="display:flex;flex-direction:column;gap:8px">${sectionTitle("同一張單的其他服裝", same.length)}
+      ${same.map(o => `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="listrow">${loanRow(o,false)}</div>${o.status==="borrowed"?`<button class="cbtn green" data-act="confirmReturn" data-id="${o.id}">收回這套</button>`:""}</div>`).join(`<div class="divider"></div>`)}</div>` : ""}
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">${sectionTitle("操作紀錄")}
+      ${[...l.events].reverse().map(e => `<div class="row" style="align-items:flex-start"><span style="width:10px;height:10px;border-radius:50%;margin-top:6px;background:${e.kind==="returned"?"var(--green)":"var(--pink)"}"></span>
+        <div><div class="strong sub">${e.kind==="returned"?"確認歸還":"出租"}</div><div class="small muted">${fmtTime(e.at)}・${e.by==="company"?"公司":esc(e.by)}</div>${e.note?`<div class="small">${esc(e.note)}</div>`:""}</div></div>`).join("")}
+      <div class="small muted">紀錄只會新增，不會被修改或刪除。</div></div></div>`;
+}
+
+/* ----- 商品庫存 ----- */
+function viewInventory(){
+  const cosers = Sales.sellerCosers(), ok = p => !S.invCoser || Sales.coserOf(p) === S.invCoser;
+  const phys = Sales.visibleProducts().filter(p => !p.digital && ok(p)), low = Sales.lowStock().filter(ok), unc = Sales.uncounted().filter(ok);
+  const shown = S.invFilter === "low" ? low : S.invFilter === "uncounted" ? unc : phys;
+  return `<div class="page">
+    <div class="small muted">營運總表目前沒有正式盤點數字，所以一開始都是「未盤點」。點「盤點」輸入實際數量後，結帳會自動扣庫存。</div>
+    ${cosers.length > 1 ? `<div class="chips"><button class="chip ${!S.invCoser?"on":""}" data-act="invCoser" data-id="" data-testid="stockCoser-all">全部 Coser</button>
+      ${cosers.map(c => `<button class="chip ${S.invCoser===c.id?"on":""}" data-act="invCoser" data-id="${c.id}" data-testid="stockCoser-${c.id}">${esc(c.short)}</button>`).join("")}</div>` : ""}
+    <div class="chips">${[["all","全部",phys.length],["low","庫存偏低",low.length],["uncounted","未盤點",unc.length]].map(([k,l,n]) => `<button class="chip ${S.invFilter===k?"on":""}" data-act="invFilter" data-id="${k}">${l}<span class="n">${n}</span></button>`).join("")}</div>
+    ${shown.length ? `<div class="grid wide">${shown.map(p => { const t = Sales.theme(p.themeId), isLow = p.stock !== null && p.stock <= LOW;
+      const pct = p.stock === null ? 0 : Math.min(100, p.stock / Math.max(30, p.stock) * 100);
+      return `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="between" style="align-items:flex-start">
+        <div><div class="strong">${esc(p.name)}</div><div class="small muted">${esc(coserName(t.coserId))}・${esc(t.name)}</div></div>
+        <b style="font-size:30px;color:${isLow?"var(--orangeDeep)":"var(--ink)"}" data-testid="stock-${p.id}">${p.stock===null?"—":p.stock}</b></div>
+        <div class="bar"><i style="width:${pct}%;background:${isLow?"var(--orange)":"var(--green)"}"></i></div>
+        <div class="between"><span class="small strong" style="color:${p.stock===null?"var(--soft)":isLow?"var(--orangeDeep)":"var(--greenDeep)"}">${p.stock===null?"未盤點":p.stock===0?"已售完":isLow?"⚠ 建議補貨":"庫存正常"}</span>
+        <button class="cbtn pinkline" data-act="countStock" data-id="${p.id}" data-testid="count-${p.id}">盤點</button></div></div>`; }).join("")}</div>`
+      : `<div class="card">${emptyHint("✅", S.invFilter==="low" ? "沒有庫存偏低的商品" : "沒有符合的商品")}</div>`}
+    <div class="small muted">電子檔等數位商品不計庫存，不列在這裡。</div></div>`;
+}
+
+/* ----- 會員管理 ----- */
+function spendText(id){ const s = Sales.spending(id); const parts = ["TWD","HKD"].filter(c => s[c]).map(c => money(s[c], c)); return parts.length ? "累積 " + parts.join("＋") : "尚無消費"; }
+function viewMembers(){
+  const k = normalizeFan(S.memberSearch);
+  const list = D.members.filter(m => !k || m.id.includes(k) || m.nickname.toUpperCase().includes(k)).sort((a,b) => b.createdAt - a.createdAt);
+  return `<div class="page narrow">
+    <div class="small strong muted">ⓘ 會員折扣規則尚未決定，目前結帳不打折，只記錄累積消費。</div>
+    <div class="row"><input class="input" placeholder="🔍 搜尋粉絲 ID 或暱稱" value="${esc(S.memberSearch)}" data-input="memberSearch" id="memberSearch" style="flex:1">
+      <button class="cbtn green" style="min-height:50px" data-act="memberForm" data-id="" data-testid="addMemberButton">＋ 新增會員</button></div>
+    ${!D.members.length ? `<div class="card center-empty"><div class="big">💗</div><b>還沒有會員</b><div>營運總表沒有正式會員名單。結帳時輸入粉絲 ID 會自動建立，也可以直接新增。</div></div>`
+      : !list.length ? `<div class="card">${emptyHint("🔍","找不到符合的會員")}</div>`
+      : `<div class="card tight">${list.map(m => { const owe = Sales.salesOfMember(m.id).filter(s => s.status === "outstanding").length;
+        return `<button class="listrow" data-act="push" data-view="memberDetail" data-id="${m.id}" data-testid="member-${m.id}"><span class="avatar" style="width:40px;height:40px;background:var(--pinkPale);color:var(--pink)">♥</span>
+          <div style="flex:1"><div class="strong">${esc(m.nickname ? `${m.nickname}（${m.id}）` : m.id)}</div><div class="small muted">${spendText(m.id)}</div></div>
+          ${owe ? `<span class="badge b-orange">待收 ${owe}</span>` : ""}<span class="chev">›</span></button>`; }).join(`<div class="divider"></div>`)}</div>`}
+  </div>`;
+}
+function memberDetail(id){
+  const m = Sales.member(id), hist = Sales.salesOfMember(id);
+  return `<div class="page narrow"><div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="strong" style="font-size:22px">${esc(m.nickname ? `${m.nickname}（${m.id}）` : m.id)}</div>
+    ${[["粉絲 ID", m.id],["加入日期", fmtDay(m.createdAt)],["累積消費", spendText(m.id)]].concat(m.note?[["備註", m.note]]:[]).map(([a,b]) => `<div class="between sub"><span class="muted">${a}</span><b>${esc(b)}</b></div>`).join("")}
+    <button class="btn secondary" data-act="memberForm" data-id="${m.id}" data-testid="editMemberButton">✎ 編輯資料</button></div>
+    <div class="card" style="display:flex;flex-direction:column;gap:6px">${sectionTitle("消費紀錄", hist.length)}${hist.length ? hist.map(s => saleRow(s,true)).join(`<div class="divider"></div>`) : emptyHint("📭","還沒有消費紀錄")}</div></div>`;
+}
+
+/* ----- 更多 ----- */
+function viewMore(){
+  const extra = moreFor();
+  return `<div class="page narrow"><div class="card" style="display:flex;flex-direction:column;gap:8px">
+    <div class="strong" style="font-size:19px">${esc(S.user.name)}</div>
+    <div class="between sub"><span class="muted">帳號</span><b>${esc(S.user.id)}</b></div><div class="between sub"><span class="muted">身分</span><b>${isCompany()?"公司":"Coser"}</b></div>
+    <div class="small muted">${isCompany() ? "可以結帳、對帳、管理庫存與會員，以及出租服裝。" : "可以結帳自己的商品、查看自己的銷售。"}</div></div>
+    ${extra.length ? `<div class="card tight">${extra.map(s => `<button class="listrow" style="min-height:56px" data-act="push" data-view="section" data-id="${s}" data-testid="more-${s}">
+      <span style="font-size:22px;width:32px;text-align:center">${SECTIONS[s].icon}</span><b style="flex:1">${SECTIONS[s].title}</b><span class="chev">›</span></button>`).join(`<div class="divider"></div>`)}</div>` : ""}
+    <button class="btn danger-outline" data-act="logout" data-testid="signOutButton">⎋ 登出</button>
+    <div class="small muted" style="text-align:center">Yumeverse 夢次元 App・測試版（資料不保存）</div></div>`;
+}
+
+/* ======================= 彈出畫面 ======================= */
+function sheetFrame(title, body, opts){
+  opts = opts || {};
+  const left = opts.left === false ? `<span class="side"></span>` : `<span class="side"><button data-act="closeSheet" ${S.busy?"disabled":""}>${opts.leftLabel||"取消"}</button></span>`;
+  return `<div class="overlay ${isPad()?"center":""}" data-act="overlayBg"><div class="sheet ${opts.short && !isPad()?"short":""} ${anim.sheet?"anim":""}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="shead">${opts.back ? `<span class="side"><button data-act="${opts.back}">‹ 上一步</button></span>` : left}<h2>${esc(title)}</h2><span class="side"></span></div>
+    <div class="scroll">${body}</div>${opts.footer ? `<div class="bottombar">${opts.footer}</div>` : ""}</div></div>`;
+}
+function stepHeader(cur, total, title, hint){
+  return `<div><div class="row" style="gap:6px">${Array.from({length:total}, (_,i) => `<span style="flex:1;height:6px;border-radius:9px;background:${i<cur?"var(--pink)":"var(--line)"}"></span>`).join("")}</div>
+    <div class="small strong" style="color:var(--pinkDeep);margin-top:8px">步驟 ${cur}／${total}</div><div class="strong" style="font-size:22px">${esc(title)}</div>${hint?`<div class="muted sub">${esc(hint)}</div>`:""}</div>`;
+}
+const DUE = [["three","3 天後",3],["week","1 週後",7],["two","2 週後",14],["custom","選日期",null]];
+function renderSheet(){
+  const sh = S.sheet; if(!sh) return "";
+  const L = sh.local;
+  if(sh.type === "lend"){
+    const total = sh.pre ? 2 : 3, num = n => sh.pre ? n-1 : n;
+    if(L.step === 1){
+      const k = (L.search||"").trim().toLowerCase(), avail = Loan.available(), list = avail.filter(c => !k || (c.code+c.name+c.series).toLowerCase().includes(k));
+      return sheetFrame("出租服裝", `<div class="page" style="gap:14px">${stepHeader(num(1), total, "要出租哪幾套服裝？", "點一下選取，可以選好幾套。只列出現在在公司、可以出租的服裝。")}
+        <input class="input" placeholder="🔍 搜尋編號或名稱" value="${esc(L.search||"")}" data-input="lendSearch" id="lendSearch">
+        ${list.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${list.map(c => { const on = L.selected.includes(c.id);
+          return `<button class="tile" style="padding:10px;gap:8px;background:${on?"var(--pinkPale)":"#fff"};border:${on?"2.5px solid var(--pink)":"1px solid var(--line)"}" data-act="lendPick" data-id="${c.id}" data-testid="pick-costume-${c.id}" aria-pressed="${on}">
+            <div style="position:relative">${photo(c,"width:100%;aspect-ratio:1;font-size:15px")}<span style="position:absolute;top:6px;right:8px;font-size:24px">${on?"✅":"⚪"}</span></div>
+            <div class="strong sub" style="color:var(--ink)">${esc(c.code)} ${esc(c.name)}</div></button>`; }).join("")}</div>`
+          : `<div class="center-empty"><div class="big">🧥</div>${k ? "找不到符合的服裝，換個關鍵字試試。" : "目前沒有可出租的服裝"}</div>`}
+        ${D.costumes.length - avail.length ? `<div class="small muted">另有 ${D.costumes.length - avail.length} 套目前出租中或暫停中，所以不在清單裡。</div>` : ""}</div>`,
+        {footer:`<button class="btn primary" data-act="lendNext" data-testid="costumesNextButton" ${L.selected.length?"":"disabled"}>${L.selected.length ? `下一步（已選 ${L.selected.length} 套）` : "請先選服裝"}</button>`});
+    }
+    if(L.step === 2){
+      const recent = Loan.recentRenters();
+      return sheetFrame("出租服裝", `<div class="page narrow" style="gap:14px">${stepHeader(num(2), total, "租給誰？", "租過的客人點一下就能帶入。")}
+        <div class="card tight" style="background:var(--pinkPale);border:0"><div class="small strong muted">要出租 ${L.selected.length} 套</div><div class="chips" style="margin-top:6px">${L.selected.map(id => { const c = Loan.costume(id); return `<span class="badge" style="background:#fff;color:var(--ink);padding:6px 10px">${esc(c.code)} ${esc(c.name)}</span>`; }).join("")}</div></div>
+        ${recent.length ? `<div><div class="small strong muted" style="margin-bottom:6px">最近的租借人</div><div class="chips">${recent.map((r,i) => `<button class="chip ${L.name===r.name?"on":""}" data-act="renterPick" data-i="${i}">${esc(r.name)}</button>`).join("")}</div></div>` : ""}
+        <div><label class="lbl" for="renterName">姓名（必填）</label><input id="renterName" class="input" placeholder="例如 王小姐" value="${esc(L.name)}" data-input="renterName" data-testid="renterNameField"></div>
+        <div><label class="lbl" for="renterPhone">手機（選填）</label><input id="renterPhone" class="input" inputmode="tel" placeholder="例如 0912-345-678" value="${esc(L.phone)}" data-input="renterPhone" data-testid="renterPhoneField"></div>
+        <div class="small muted">完整登記表欄位之後再加。</div>
+        <button class="btn primary" data-act="lendToDate" data-testid="renterNextButton" ${L.name.trim()?"":"disabled"}>下一步</button></div>`,
+        {back: sh.pre ? null : "lendBack"});
+    }
+    const due = lendDue(L);
+    return sheetFrame("出租服裝", `<div class="page narrow" style="gap:16px">${stepHeader(num(3), total, "什麼時候歸還？", "預設 1 週後，可以直接確認。")}
+      <div class="chips">${DUE.map(([k,l]) => `<button class="chip ${L.due===k?"on":""}" data-act="lendDue" data-id="${k}" data-testid="due-${k}">${l}</button>`).join("")}</div>
+      ${L.due === "custom" ? `<input type="date" class="input" min="${toInputDate(new Date())}" value="${L.custom}" data-input="lendCustom" id="lendCustom">` : ""}
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><b>請確認</b>
+        ${L.selected.map(id => { const c = Loan.costume(id); return `<div class="row">${photo(c,48)}<b class="sub">${esc(c.code)} ${esc(c.name)}</b></div>`; }).join("")}
+        <div class="divider"></div><div class="between sub"><span class="muted">租借人</span><b>${esc(L.name.trim())}${L.phone.trim()?`・${esc(L.phone.trim())}`:""}</b></div>
+        <div class="between"><span class="muted sub">應歸還日</span><b style="font-size:19px;color:var(--pinkDeep)" data-testid="dueDateText">${fmtDay(due)}</b></div></div>
+      <button class="btn primary" data-act="lendSubmit" data-testid="confirmLendButton" ${S.busy?"disabled":""}>${busyLabel(`✓ 確認出租 ${L.selected.length} 套`,"登記中…")}</button></div>`,
+      {back:"lendBack"});
+  }
+  if(sh.type === "confirmReturn"){
+    const l = Loan.loan(sh.id), c = Loan.costume(l.costumeId);
+    const needNote = L.cond && L.cond !== "normal", noteMissing = needNote && !L.note.trim();
+    const condBtn = (k, icon, color) => `<button style="flex:1;min-height:76px;border-radius:16px;border:1.5px solid ${L.cond===k?color:color+"66"};background:${L.cond===k?color:color+"1a"};color:${L.cond===k?"#fff":color};font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px" data-act="cond" data-id="${k}" data-testid="condition-${k==="missing"?"missingParts":k}" aria-pressed="${L.cond===k}"><span style="font-size:22px">${icon}</span>${COND[k]}</button>`;
+    return sheetFrame("確認歸還", `<div class="page narrow" style="gap:16px">
+      <div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row">${photo(c,80)}<div><div class="strong">${esc(c.code)} ${esc(c.name)}</div><div class="sub strong">👤 ${esc(l.renter.name)}${l.renter.phone?`・${esc(l.renter.phone)}`:""}</div>${dueBadge(l)}</div></div>
+        <div class="between sub"><span class="muted">出租日</span><b>${fmtDay(l.lentAt)}</b></div><div class="between sub"><span class="muted">應歸還日</span><b>${fmtDay(l.dueDate)}</b></div></div>
+      ${c.accessories.length ? `<div class="card" style="display:flex;flex-direction:column;gap:4px"><b>對照配件</b><div class="small muted">收到的就點一下打勾。</div>
+        ${c.accessories.map(a => `<button class="listrow" style="min-height:44px" data-act="acc" data-id="${esc(a)}"><span style="font-size:20px">${L.checked.includes(a)?"☑️":"⬜"}</span><b>${esc(a)}</b></button>`).join("")}</div>` : ""}
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><b>服裝狀況</b>
+        <div class="row">${condBtn("normal","✔","#5A7A2C")}${condBtn("damaged","🩹","#C65353")}${condBtn("missing","🧩","#A95D1E")}</div>
+        ${needNote ? `<div><label class="lbl" for="condNote">${L.cond==="damaged"?"哪裡損壞？（必填）":"少了什麼？（必填）"}</label>
+          <textarea id="condNote" class="input ${noteMissing?"err":""}" placeholder="簡單寫一下就好" data-input="condNote" data-testid="conditionNoteField">${esc(L.note)}</textarea>
+          <div class="small muted" style="margin-top:6px">⏸ 確認後這套服裝會先暫停出租，整理好再到服裝頁恢復。</div></div>` : ""}</div>
+      <button class="btn green" data-act="returnSubmit" data-testid="finishReturnButton" ${!L.cond||noteMissing||S.busy?"disabled":""}>${busyLabel("✔ 確認收到，完成歸還","處理中…")}</button>
+      ${!L.cond ? `<div class="small strong muted" style="text-align:center">請先選擇服裝狀況</div>` : ""}</div>`);
+  }
+  if(sh.type === "payment"){
+    if(L.done){ const s = L.done;
+      return sheetFrame("完成", `<div class="page narrow" style="align-items:center;text-align:center;padding-top:40px;gap:14px">
+        <div style="width:84px;height:84px;border-radius:28px;display:grid;place-items:center;font-size:40px;color:#fff;background:${s.status==="paid"?"var(--green)":"var(--orange)"}">${s.status==="paid"?"✓":"🧾"}</div>
+        <div class="strong" style="font-size:28px" data-testid="paymentDoneTitle">${s.status==="paid"?"收款完成":"已記成應收"}</div>
+        <div class="strong" style="font-size:38px;color:var(--pinkDeep)">${money(s.total, s.currency)}</div>
+        <div class="muted strong">${PAY[s.payment]}・${items(s)} 件${s.memberId?`・粉絲 ${esc(s.memberId)}`:""}</div>
+        <button class="btn primary" style="margin-top:20px" data-act="closeSheet" data-testid="nextCustomerButton">下一位客人 →</button></div>`, {left:false});
+    }
+    if(!S.cart.length) return sheetFrame("收款", `<div class="center-empty"><div class="big">🛍️</div><b>購物車是空的</b><div>回到結帳畫面選商品。</div></div>`, {leftLabel:"返回"});
+    const total = Sales.cartTotal(), needFan = L.pay === "credit" && !normalizeFan(S.cartMember), given = parseInt(L.cash || "", 10);
+    const fanKey = normalizeFan(S.cartMember), mem = fanKey && Sales.member(fanKey);
+    return sheetFrame("收款", `<div class="page narrow" style="gap:18px">
+      <div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="small strong muted">${esc(Sales.event(S.eventId).name)}</div>${cartLines()}<div class="divider"></div>
+        <div class="between"><b>應收</b><b style="font-size:34px;color:var(--pinkDeep)" data-testid="paymentTotal">${money(total)}</b></div></div>
+      <div><b>收款方式</b><div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px">${["cash","transfer","linePay","credit"].map(k => `<button style="min-height:60px;border-radius:16px;border:0;padding:12px;display:flex;align-items:center;gap:10px;font-weight:900;background:${L.pay===k?PAYCOLOR[k]:PAYCOLOR[k]+"1a"};color:${L.pay===k?"#fff":PAYCOLOR[k]}" data-act="pay" data-id="${k}" data-testid="pay-${k}" aria-pressed="${L.pay===k}"><span style="font-size:20px">${PAYICON[k]}</span>${k==="credit"?"賒帳（記應收）":PAY[k]}</button>`).join("")}</div></div>
+      ${L.pay === "cash" ? `<div><label class="lbl" for="cashGiven">客人給多少？（選填，幫你算找零）</label><input id="cashGiven" class="input big" inputmode="numeric" placeholder="例如 2000" value="${esc(L.cash||"")}" data-input="cashGiven" data-testid="cashGivenField">
+        ${given > 0 ? `<div class="strong" style="font-size:19px;margin-top:8px;color:${given>=total?"var(--greenDeep)":"var(--danger)"}">${given>=total ? `找零 ${money(given-total)}` : `還差 ${money(total-given)}`}</div>` : ""}</div>` : ""}
+      <div><label class="lbl" for="fanId">${L.pay==="credit"?"粉絲 ID（賒帳必填）":"粉絲 ID（選填，累積會員消費）"}</label>
+        <input id="fanId" class="input ${needFan?"err":""}" placeholder="例如 FAN123" value="${esc(S.cartMember)}" data-input="fanId" data-testid="memberIDField" autocapitalize="characters">
+        ${mem ? `<div class="small strong" style="color:var(--greenDeep);margin-top:6px">💗 會員：${esc(mem.nickname?`${mem.nickname}（${mem.id}）`:mem.id)}</div>` : fanKey ? `<div class="small muted" style="margin-top:6px">新的粉絲 ID，結帳後會自動建立會員。</div>` : ""}
+        <div class="small muted" style="margin-top:4px">會員折扣規則尚未決定，目前不打折。</div></div>
+      <button class="btn primary" data-act="paySubmit" data-testid="confirmPaymentButton" ${needFan||S.busy?"disabled":""}>${busyLabel(L.pay==="credit" ? `記成應收 ${money(total)}` : `✓ 確認收款 ${money(total)}`, "處理中…")}</button>
+      ${notice()}</div>`, {leftLabel:"返回"});
+  }
+  if(sh.type === "settle"){
+    const s = Sales.sale(sh.id);
+    return sheetFrame("登記已收到", `<div class="page narrow" style="gap:12px"><div class="card">${saleRow(s,true)}</div><b>用什麼方式收到的？</b>
+      ${["cash","transfer","linePay"].map(k => `<button class="btn" style="background:${PAYCOLOR[k]};color:#fff" data-act="settleWith" data-id="${k}" data-testid="settleWith-${k}" ${S.busy?"disabled":""}>${PAYICON[k]} ${PAY[k]}</button>`).join("")}</div>`, {short:true});
+  }
+  if(sh.type === "countStock"){
+    const p = Sales.product(sh.id);
+    return sheetFrame("盤點", `<div class="page narrow" style="gap:14px"><div class="strong" style="font-size:19px">${esc(p.name)}</div>
+      <div class="muted sub">目前：${p.stock===null?"未盤點":`${p.stock} 件`}</div><b>實際點到幾件？</b>
+      <div class="row"><button class="avatar" style="width:56px;height:56px;border:0;border-radius:50%;background:var(--pinkPale);color:var(--pinkDeep);font-size:26px" data-act="stockStep" data-d="-1" aria-label="減一">−</button>
+        <input id="stockCount" class="input big" inputmode="numeric" placeholder="數量" value="${esc(L.text)}" data-input="stockCount" data-testid="stockCountField" style="flex:1;text-align:center">
+        <button class="avatar" style="width:56px;height:56px;border:0;border-radius:50%;background:var(--pinkPale);color:var(--pinkDeep);font-size:26px" data-act="stockStep" data-d="1" aria-label="加一">＋</button></div>
+      <button class="btn primary" data-act="stockSave" data-testid="saveStockButton" ${L.text===""||S.busy?"disabled":""}>${busyLabel("✓ 儲存盤點數量","儲存中…")}</button></div>`, {short:true});
+  }
+  if(sh.type === "cash"){
+    const title = sh.kind === "opening" ? "起始現金" : "收攤實點現金";
+    return sheetFrame(title, `<div class="page narrow" style="gap:14px"><div class="small strong muted">${esc(Sales.event(S.eventId).name)}</div>
+      <div class="muted sub">${sh.kind==="opening"?"開賣前錢箱裡的找零金額。":"收攤後把錢箱裡的現金全部點一遍。"}</div>
+      <input id="cashAmount" class="input big" inputmode="numeric" placeholder="金額（${SYM[currency()]}）" value="${esc(L.text)}" data-input="cashAmount" data-testid="cashAmountField">
+      <button class="btn primary" data-act="cashSave" data-testid="saveCashButton" ${L.text===""||S.busy?"disabled":""}>${busyLabel("✓ 儲存","儲存中…")}</button></div>`, {short:true});
+  }
+  if(sh.type === "member"){
+    const editing = !!sh.id, exists = !editing && L.id && Sales.member(L.id), can = editing || (normalizeFan(L.id) && !exists);
+    const field = (lbl, key, ph, id, dis) => `<div><label class="lbl" for="${id}">${lbl}</label><input id="${id}" class="input" placeholder="${ph}" value="${esc(L[key])}" data-input="m_${key}" data-testid="${id}" ${dis?"disabled style='opacity:.6'":""}></div>`;
+    return sheetFrame(editing ? "編輯會員" : "新增會員", `<div class="page narrow" style="gap:14px">
+      ${field("粉絲 ID（必填）","id","例如 FAN123","memberFormID",editing)}
+      ${exists ? `<div class="small strong" style="color:var(--danger)">這個粉絲 ID 已經是會員了。</div>` : ""}
+      ${field("暱稱（選填）","nick","例如 小雪","memberFormNickname")}${field("備註（選填）","note","例如 喜歡芙莉蓮","memberFormNote")}
+      <button class="btn primary" data-act="memberSave" data-testid="saveMemberButton" ${!can||S.busy?"disabled":""}>${busyLabel(editing?"✓ 儲存":"✓ 新增會員","儲存中…")}</button></div>`);
+  }
+  return "";
+}
+function lendDue(L){ const opt = DUE.find(d => d[0] === L.due); return opt[2] ? addDays(new Date(), opt[2]) : fromInputDate(L.custom); }
+
+function renderConfirm(){
+  const c = S.confirm; if(!c) return "";
+  return `<div class="overlay center"><div class="dialog" role="alertdialog" aria-modal="true"><h3>${esc(c.title)}</h3>${c.message?`<div class="muted sub">${esc(c.message)}</div>`:""}
+    <button class="btn ${c.danger?"primary":"green"}" style="${c.danger?"background:var(--danger);box-shadow:none":""}" data-act="confirmOk" data-testid="confirmOk">${esc(c.ok)}</button>
+    <button class="btn secondary" data-act="confirmCancel">${esc(c.cancel||"取消")}</button></div></div>`;
+}
+
+/* ======================= 外框與導覽 ======================= */
+function currentView(){
+  const top = S.stack[S.stack.length-1];
+  if(top){
+    if(top.view === "costumeDetail") return {title:Loan.costume(top.id).code, html:`<div class="scroll">${costumeDetail(top.id)}</div>`};
+    if(top.view === "loanDetail") return {title:"租借明細", html:`<div class="scroll">${loanDetail(top.id)}</div>`};
+    if(top.view === "memberDetail") return {title:"會員", html:`<div class="scroll">${memberDetail(top.id)}</div>`};
+    if(top.view === "section") return sectionView(top.id);
+  }
+  return sectionView(S.section);
+}
+function sectionView(sec){
+  const t = SECTIONS[sec].title;
+  switch(sec){
+    case "home": return {title: isCompany() ? "首頁" : "我的首頁", html:`<div class="scroll">${isCompany() ? viewCompanyHome() : viewCoserHome()}</div>`};
+    case "checkout": return {title:t, html:viewCheckout(), raw:true};
+    case "reconcile": return {title:t, html:`<div class="scroll">${viewReconcile()}</div>`};
+    case "mySales": return {title:t, html:`<div class="scroll">${viewMySales()}</div>`};
+    case "costumes": return {title:t, html:viewCostumes(), action: `<button class="act" data-act="openLend" data-testid="toolbarLend">＋出租</button>`};
+    case "records": return {title:t, html:viewRecords()};
+    case "inventory": return {title:t, html:`<div class="scroll">${viewInventory()}</div>`};
+    case "members": return {title:t, html:`<div class="scroll">${viewMembers()}</div>`};
+    case "more": return {title:t, html:`<div class="scroll">${viewMore()}</div>`};
+  }
+}
+function badgeFor(sec){
+  if(sec === "home") return Sales.outstanding().length;
+  if(sec === "checkout") return cartCount();
+  if(sec === "costumes") return isCompany() ? Loan.overdue().length : 0;
+  return 0;
+}
+/** 彈出畫面與提示只在第一次出現時播放動畫（打字重畫時不要閃） */
+let lastSheet = null, lastToast = null;
+const anim = {sheet:false, toast:false};
+function render(){
+  const dev = $("device");
+  anim.sheet = !!S.sheet && S.sheet !== lastSheet; lastSheet = S.sheet;
+  anim.toast = !!S.toast && S.toast !== lastToast; lastToast = S.toast;
+  const focus = document.activeElement && document.activeElement.id && dev.contains(document.activeElement) ? {id:document.activeElement.id, s:document.activeElement.selectionStart, e:document.activeElement.selectionEnd} : null;
+  const scrolls = [...dev.querySelectorAll(".scroll")].map(x => x.scrollTop);
+  let html;
+  if(!S.user) html = viewLogin();
+  else {
+    const v = currentView();
+    if(isPad()){
+      const groups = uniq(sectionsFor().map(s => SECTIONS[s].group));
+      html = `<div class="padwrap"><nav class="sidebar" aria-label="主要功能"><div class="brand">Yumeverse</div>
+        ${groups.map(g => `<div class="grp">${g}</div>${sectionsFor().filter(s => SECTIONS[s].group === g).map(s => { const n = badgeFor(s);
+          return `<button class="item ${S.section===s && !S.stack.length?"on":""}" data-act="tab" data-id="${s}" data-testid="sidebar-${s}"><span>${SECTIONS[s].icon}</span>${SECTIONS[s].title}${n?`<span class="n">${n}</span>`:""}</button>`; }).join("")}`).join("")}
+        ${isCompany() ? `<div class="grp">快速動作</div><button class="item" style="color:var(--pink)" data-act="openLend">➕ 出租服裝</button>` : ""}
+        <div class="acct">${isCompany() ? `<span class="avatar" style="width:38px;height:38px;background:var(--pink)">公</span>` : avatar(Sales.coser(S.user.coserId),38)}<div><div class="strong sub">${esc(S.user.name)}</div><div class="small muted">${isCompany()?"公司":"Coser"}帳號</div></div></div></nav>
+        <main class="padmain"><div class="navbar">${S.stack.length ? `<span class="side"><button class="back" data-act="back">‹ 返回</button></span>` : `<span class="side"></span>`}<h1>${esc(v.title)}</h1><span class="side right">${v.action && !S.stack.length ? v.action : ""}</span></div>${v.html}</main></div>`;
+    } else {
+      const tabs = tabsFor();
+      html = `<div class="navbar">${S.stack.length ? `<span class="side"><button class="back" data-act="back">‹ 返回</button></span>` : `<span class="side"></span>`}<h1>${esc(v.title)}</h1><span class="side right">${v.action && !S.stack.length ? v.action : ""}</span></div>
+        ${v.html}
+        <nav class="tabbar" style="grid-template-columns:repeat(${tabs.length},1fr)" aria-label="分頁">${tabs.map(s => { const n = badgeFor(s);
+          return `<button class="${S.section===s?"on":""}" data-act="tab" data-id="${s}" data-testid="tab-${s}"><span class="i">${SECTIONS[s].icon}</span>${SECTIONS[s].short}${n?`<span class="dot">${n}</span>`:""}</button>`; }).join("")}</nav>`;
+    }
+  }
+  html += renderSheet() + renderConfirm();
+  if(S.toast) html += `<div class="toast ${S.toast.kind} ${anim.toast?"anim":""}" role="status" data-testid="toast" data-act="toast">${S.toast.kind==="success"?"✔":S.toast.kind==="failure"?"✖":"ⓘ"} ${esc(S.toast.text)}</div>`;
+  dev.innerHTML = html;
+  const newScrolls = [...dev.querySelectorAll(".scroll")]; newScrolls.forEach((x,i) => { if(scrolls[i] !== undefined && keepScroll) x.scrollTop = scrolls[i]; });
+  keepScroll = true;
+  if(focus){ const el = $(focus.id); if(el){ el.focus(); try{ el.setSelectionRange(focus.s, focus.e); }catch(_){} } }
+}
+let keepScroll = true;
+
+/* ---------- 提示與非同步 ---------- */
+let toastTimer;
+function toast(kind, text){ S.toast = {kind, text}; clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = null; render(); }, kind === "failure" ? 4000 : 2600);
+  if(navigator.vibrate) try{ navigator.vibrate(kind === "failure" ? [40,40,40] : 20); }catch(_){} }
+async function perform(fn, success){
+  if(S.busy) return false; S.busy = true; render();
+  await sleep(450);
+  try{ fn(); S.busy = false; if(success) toast("success", success); render(); return true; }
+  catch(e){ S.busy = false; toast("failure", e instanceof RuleError ? e.message : "發生錯誤，請再試一次。"); render(); if(!(e instanceof RuleError)) console.error(e); return false; }
+}
+
+/* ---------- 導覽動作 ---------- */
+function go(section){ S.section = section; S.stack = []; keepScroll = false; S.selCostume = null; S.selLoan = null; }
+function jump(section){
+  if(isPad() || tabsFor().includes(section)) go(section);
+  else { S.stack.push({view:"section", id:section}); keepScroll = false; }
+}
+function askConfirm(c){ S.confirm = c; render(); }
+
+/* ======================= 事件 ======================= */
+document.addEventListener("click", async ev => {
+  const t = ev.target.closest("[data-act],[data-preview],[data-tbar]"); if(!t) return;
+  if(t.dataset.preview){ setPreview(t.dataset.preview); return; }
+  if(t.dataset.tbar === "tasks"){ toggleDrawer(); return; }
+  if(t.dataset.tbar === "reset"){ if(confirm("要把測試資料重置回初始狀態嗎？（測試任務的勾選不會清掉）")){ const u = S.user; D = makeData(); Object.assign(S, {stack:[], sheet:null, confirm:null, cart:[], cartMember:"", checkoutCoser:null, homeCoser:null, eventId:"test", themeFilter:null}); S.user = u; render(); } return; }
+  if(t.disabled) return;
+  const a = t.dataset.act, id = t.dataset.id, L = S.sheet && S.sheet.local;
+  switch(a){
+    case "overlayBg": if(ev.target === t && !S.busy && !(S.sheet && S.sheet.local && S.sheet.local.done)) { S.sheet = null; render(); } return;
+    case "toast": S.toast = null; render(); return;
+    case "demoLogin": { const acc = ACCOUNTS.find(x => x.id === id); await doLogin(acc.id, acc.password); return; }
+    case "login": await doLogin($("acc").value, $("pwd").value); return;
+    case "tab": go(id); render(); return;
+    case "back": S.stack.pop(); keepScroll = false; render(); return;
+    case "push": if(t.dataset.view === "section") S.stack.push({view:"section", id}); else S.stack.push({view:t.dataset.view, id}); keepScroll = false; render(); return;
+    case "jump":
+      if(t.dataset.prep && S.homeCoser && !S.cart.length) S.checkoutCoser = S.homeCoser;
+      if(t.dataset.cfilter) S.costumeFilter = t.dataset.cfilter;
+      jump(t.dataset.section); render(); return;
+    case "homeCoser": S.homeCoser = id || null; render(); return;
+    case "logout": askConfirm({title:"確定要登出嗎？", ok:"登出", danger:true, run(){ S.user = null; S.stack = []; S.cart = []; S.cartMember = ""; S.checkoutCoser = null; S.homeCoser = null; S.section = "home"; }}); return;
+    case "confirmOk": { const c = S.confirm; S.confirm = null; if(c.run) await c.run(); render(); return; }
+    case "confirmCancel": S.confirm = null; render(); return;
+    case "closeSheet": S.sheet = null; render(); return;
+
+    /* 結帳 */
+    case "checkoutCoser":
+      if(id === activeCoser()) return;
+      if(S.cart.length){ const cur = coserName(activeCoser()), nx = coserName(id);
+        askConfirm({title:`購物車有 ${cur} 的 ${cartCount()} 件商品，要換成 ${nx} 嗎？`, message:"一筆交易只能是同一位 Coser 的商品。", ok:"清空購物車並切換", danger:true,
+          run(){ S.cart = []; S.cartMember = ""; S.checkoutCoser = id; S.themeFilter = null; toast("info", `已清空購物車，改為 ${nx} 的商品`); }}); return; }
+      S.checkoutCoser = id; S.themeFilter = null; render(); return;
+    case "theme": S.themeFilter = id || null; render(); return;
+    case "add": addToCart(id); render(); return;
+    case "qty": changeQty(id, Number(t.dataset.d)); render(); return;
+    case "clearCart": askConfirm({title:"要清空購物車嗎？", ok:"清空", danger:true, run(){ S.cart = []; S.cartMember = ""; }}); return;
+    case "openPayment": S.sheet = {type:"payment", local:{pay:"cash", cash:"", done:null}}; render(); return;
+    case "pay": L.pay = id; render(); return;
+    case "paySubmit": { let sale; const ok = await perform(() => { sale = Sales.checkout(L.pay, S.cartMember); S.cart = []; S.cartMember = ""; }, null); if(ok){ L.done = sale; render(); } return; }
+
+    /* 對帳 */
+    case "cashEntry": { const e = Sales.event(S.eventId), cur = t.dataset.kind === "opening" ? e.opening : e.actual;
+      S.sheet = {type:"cash", kind:t.dataset.kind, local:{text: cur === null ? "" : String(cur)}}; render(); return; }
+    case "cashSave": { const n = parseInt(L.text, 10), kind = S.sheet.kind;
+      if(await perform(() => Sales.setCash(kind, n), `已記錄${kind==="opening"?"起始現金":"收攤實點現金"}`)) { S.sheet = null; render(); } return; }
+    case "settle": S.sheet = {type:"settle", id, local:{}}; render(); return;
+    case "settleWith": { const sid = S.sheet.id; if(await perform(() => Sales.settle(sid, id), `已登記收到（${PAY[id]}）`)) { S.sheet = null; render(); } return; }
+
+    /* 庫存 */
+    case "invCoser": S.invCoser = id || null; render(); return;
+    case "invFilter": S.invFilter = id; render(); return;
+    case "countStock": { const p = Sales.product(id); S.sheet = {type:"countStock", id, local:{text: p.stock === null ? "" : String(p.stock)}}; render(); return; }
+    case "stockStep": L.text = String(Math.max(0, (parseInt(L.text,10) || 0) + Number(t.dataset.d))); render(); return;
+    case "stockSave": { const pid = S.sheet.id, n = parseInt(L.text, 10), p = Sales.product(pid);
+      if(await perform(() => Sales.setStock(pid, n), `已更新「${p.name}」庫存為 ${n} 件`)) { S.sheet = null; render(); } return; }
+
+    /* 會員 */
+    case "memberForm": { const m = id ? Sales.member(id) : null; S.sheet = {type:"member", id: id || null, local:{id: m ? m.id : "", nick: m ? m.nickname : "", note: m && m.note ? m.note : ""}}; render(); return; }
+    case "memberSave": { const editing = S.sheet.id, k = normalizeFan(L.id);
+      if(await perform(() => editing ? Sales.updateMember(editing, L.nick, L.note) : Sales.addMember(L.id, L.nick, L.note), editing ? "已更新會員資料" : `已新增會員 ${k}`)) { S.sheet = null; render(); } return; }
+
+    /* 服裝租借 */
+    case "cfilter": S.costumeFilter = id; render(); return;
+    case "cfilterReset": S.costumeFilter = "all"; S.costumeSearch = ""; render(); return;
+    case "selCostume": S.selCostume = id; render(); return;
+    case "recTab": S.recTab = id; S.selLoan = null; render(); return;
+    case "selLoan": S.selLoan = id; render(); return;
+    case "openLend": S.sheet = {type:"lend", pre: id || null, local:{step: id ? 2 : 1, selected: id ? [id] : [], name:"", phone:"", due:"week", custom: toInputDate(addDays(new Date(),7)), search:""}}; render(); focusLater("renterName", !!id); return;
+    case "lendPick": { const i = L.selected.indexOf(id); if(i >= 0) L.selected.splice(i,1); else L.selected.push(id); render(); return; }
+    case "lendNext": L.step = 2; render(); focusLater("renterName", !L.name); return;
+    case "lendBack": L.step -= 1; render(); return;
+    case "renterPick": { const r = Loan.recentRenters()[Number(t.dataset.i)]; L.name = r.name; L.phone = r.phone || ""; render(); return; }
+    case "lendToDate": L.step = 3; render(); return;
+    case "lendDue": L.due = id; render(); return;
+    case "lendSubmit": { const n = L.selected.length, who = L.name.trim(), first = Loan.costume(L.selected[0]);
+      const what = n === 1 ? `${first.code} ${first.name}` : `${n} 套服裝`;
+      if(await perform(() => Loan.lend(L.selected, {name:L.name, phone:L.phone}, lendDue(L)), `已出租 ${what} 給 ${who}`)) { S.sheet = null; render(); } return; }
+    case "confirmReturn": S.sheet = {type:"confirmReturn", id, local:{checked:[], cond:null, note:""}}; render(); return;
+    case "acc": { const i = L.checked.indexOf(id); if(i >= 0) L.checked.splice(i,1); else L.checked.push(id); render(); return; }
+    case "cond": { L.cond = id; if(id === "missing" && !L.note && L.checked.length){ const c = Loan.costume(Loan.loan(S.sheet.id).costumeId); const miss = c.accessories.filter(x => !L.checked.includes(x)); if(miss.length) L.note = "缺少：" + miss.join("、"); }
+      render(); if(id !== "normal") focusLater("condNote", !L.note); return; }
+    case "returnSubmit": { const lid = S.sheet.id, cond = L.cond, note = L.note;
+      const msg = cond === "normal" ? "歸還完成，服裝可以再出租" : "歸還完成，服裝已暫停出租，整理好再恢復";
+      if(await perform(() => Loan.confirmReturn(lid, cond, note), msg)) { S.sheet = null; render(); } return; }
+    case "resume": askConfirm({title:"確定這套服裝已整理好、可以再出租了嗎？", ok:"確定，恢復可出租", cancel:"還沒有", async run(){ await perform(() => Loan.resume(id), "已恢復可出租"); }}); return;
+  }
+});
+document.addEventListener("input", ev => {
+  const t = ev.target, k = t.dataset && t.dataset.input; if(!k) return;
+  const L = S.sheet && S.sheet.local, v = t.value;
+  const digits = () => { const d = v.replace(/\D/g, ""); if(d !== v) t.value = d; return d; };
+  switch(k){
+    case "costumeSearch": S.costumeSearch = v; break;
+    case "recSearch": S.recSearch = v; break;
+    case "memberSearch": S.memberSearch = v; break;
+    case "lendSearch": L.search = v; break;
+    case "renterName": L.name = v; break;
+    case "renterPhone": L.phone = v; return;
+    case "lendCustom": if(v) L.custom = v; break;
+    case "condNote": L.note = v; break;
+    case "cashGiven": L.cash = digits(); break;
+    case "fanId": S.cartMember = v; break;
+    case "stockCount": L.text = digits(); break;
+    case "cashAmount": L.text = digits(); break;
+    case "m_id": L.id = v; break;
+    case "m_nick": L.nick = v; return;
+    case "m_note": L.note = v; return;
+  }
+  render();
+});
+document.addEventListener("change", ev => {
+  if(ev.target.dataset && ev.target.dataset.change === "event"){
+    const id = ev.target.value; if(id === S.eventId) return;
+    S.eventId = id; S.themeFilter = null;
+    if(S.cart.length){ S.cart = []; S.cartMember = ""; toast("info", "已換場次，購物車已清空（售價和幣別可能不同）"); }
+    render();
+  }
+});
+document.addEventListener("keydown", ev => {
+  if(ev.key === "Enter" && ev.target && (ev.target.id === "pwd" || ev.target.id === "acc")) doLogin($("acc").value, $("pwd").value);
+  if(ev.key === "Escape" && !S.busy){ if(S.confirm){ S.confirm = null; render(); } else if(S.sheet){ S.sheet = null; render(); } }
+});
+function focusLater(id, should){ if(should) setTimeout(() => { const el = $(id); if(el) el.focus(); }, 30); }
+
+async function doLogin(acc, pwd){
+  acc = (acc||"").trim().toLowerCase();
+  if(!acc || !pwd){ S.loginErr = "請輸入帳號和密碼。"; render(); return; }
+  S.loginErr = null; S.busy = true; render(); await sleep(350); S.busy = false;
+  const a = ACCOUNTS.find(x => x.id === acc && x.password === pwd);
+  if(!a){ S.loginErr = "帳號或密碼不正確，可以點上方的測試帳號直接登入。"; render(); return; }
+  S.user = a; S.section = "home"; S.stack = []; S.cart = []; S.checkoutCoser = null; S.homeCoser = null; S.costumeFilter = "all"; render();
+}
+function addToCart(pid){
+  const p = Sales.product(pid), price = p.price[currency()];
+  if(price === null || price === undefined){ toast("failure", `「${p.name}」在這個場次還沒有正式售價，不能結帳。`); return; }
+  if(S.cart.length && Sales.coserOf(Sales.product(S.cart[0].pid)) !== Sales.coserOf(p)){ toast("failure", "一筆交易只能是同一位 Coser 的商品，請先結清目前的購物車。"); return; }
+  const q = qtyOf(pid); if(!p.digital && p.stock !== null && q >= p.stock){ toast("failure", p.stock === 0 ? `「${p.name}」已售完。` : `「${p.name}」庫存只剩 ${p.stock} 件。`); return; }
+  changeQty(pid, 1);
+}
+function changeQty(pid, d){ const i = S.cart.findIndex(x => x.pid === pid);
+  if(i >= 0){ S.cart[i].qty += d; if(S.cart[i].qty <= 0) S.cart.splice(i,1); } else if(d > 0) S.cart.push({pid, qty:d}); }
+
+/* ======================= 預覽尺寸 ======================= */
+function setPreview(mode){
+  S.preview = mode; const st = $("stage");
+  st.className = "stage" + (mode === "auto" ? "" : ` framed ${mode}`);
+  document.querySelectorAll("[data-preview]").forEach(b => b.classList.toggle("on", b.dataset.preview === mode));
+  render();
+}
+let lastPad = null;
+new ResizeObserver(() => { const p = isPad(); if(p !== lastPad){ lastPad = p; render(); } }).observe($("device"));
+
+/* ======================= 測試任務面板 ======================= */
+const TASKS = [
+  ["公司","用「公司管理員」登入，看首頁這個場次的公司收入和待處理。"],
+  ["公司","在首頁切換到「小桃」，看數字有沒有跟著變；再切回「全部」。"],
+  ["公司","選小桃後按「開始結帳」，賣出 1 個 JK 套組＋2 個簽名拍立得，用 LINE Pay 收款。"],
+  ["公司","切到ここあ的商品，用「賒帳」賣 1 本索達寫真書給粉絲 FAN123。"],
+  ["公司","到「對帳」輸入起始現金 3000，再輸入收攤實點，看差額。"],
+  ["公司","把 FF 退款 1,700 元登記為已收到（轉帳）。"],
+  ["公司","一次出租兩套服裝給一位新客人（自己取名字）。"],
+  ["公司","收回逾期的 C-30 初音旗袍，狀況選「有損壞」並寫說明。"],
+  ["公司","到「商品庫存」把「索達寫真書・單書」盤點為 3 件。"],
+  ["公司","新增一位會員 ABC01，暱稱自己取。"],
+  ["Coser","登出後用「小桃」登入，確認只看得到自己的商品，並結一筆現金帳。"],
+  ["全部","切換上方「iPhone／iPad」預覽，各試一次上面任一個流程。"]
+];
+const TS = {done:new Set(), notes:"", tester:""};
+try{ const raw = localStorage.getItem("yume-ui-test"); if(raw){ const o = JSON.parse(raw); TS.done = new Set(o.done||[]); TS.notes = o.notes||""; TS.tester = o.tester||""; } }catch(_){}
+function saveTS(){ try{ localStorage.setItem("yume-ui-test", JSON.stringify({done:[...TS.done], notes:TS.notes, tester:TS.tester})); }catch(_){} }
+function renderDrawer(){
+  $("drawer").innerHTML = `<div class="dh"><h3>🧪 測試任務</h3><button class="cbtn" style="background:var(--grayPale)" data-drawer="close">關閉</button></div>
+  <div class="db">
+    <div class="small muted">照順序試試看，做完就勾起來。卡住、看不懂或覺得麻煩的地方，請寫在最下面的意見欄。</div>
+    <div><label class="lbl" for="tester">測試者</label><input id="tester" class="input" placeholder="你的名字" value="${esc(TS.tester)}" data-ts="tester"></div>
+    ${TASKS.map((t,i) => `<label class="task ${TS.done.has(i)?"done":""}"><input type="checkbox" data-ts="task" data-i="${i}" ${TS.done.has(i)?"checked":""}><span><span class="who">${t[0]}</span>${i+1}. ${esc(t[1])}</span></label>`).join("")}
+    <div><label class="lbl" for="tsNotes">意見（哪裡卡住、看不懂、太多步驟）</label><textarea id="tsNotes" class="input" style="min-height:140px" data-ts="notes" placeholder="例如：任務 4 找不到賒帳在哪裡">${esc(TS.notes)}</textarea></div>
+    <button class="btn primary" data-drawer="copy">📋 複製測試結果</button>
+    <div class="small muted">按下後會把勾選結果和意見複製起來，貼到 LINE 或 Email 傳給公司即可。</div>
+  </div>`;
+}
+function toggleDrawer(){ const d = $("drawer"); if(d.classList.contains("hidden")){ renderDrawer(); d.classList.remove("hidden"); } else d.classList.add("hidden"); }
+$("drawer").addEventListener("click", async ev => {
+  const b = ev.target.closest("[data-drawer]"); if(!b) return;
+  if(b.dataset.drawer === "close") $("drawer").classList.add("hidden");
+  if(b.dataset.drawer === "copy"){
+    const text = [`Yumeverse UI 測試結果（${new Date().toLocaleString("zh-TW")}）`, `測試者：${TS.tester || "未填"}`, `預覽：${S.preview}・畫面寬 ${$("device").clientWidth}px`, "",
+      ...TASKS.map((t,i) => `${TS.done.has(i) ? "☑" : "☐"} ${i+1}. ${t[1]}`), "", "意見：", TS.notes || "（無）"].join("\n");
+    try{ await navigator.clipboard.writeText(text); b.textContent = "✔ 已複製"; }
+    catch(_){ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); b.textContent = "✔ 已複製"; }
+    setTimeout(() => { b.textContent = "📋 複製測試結果"; }, 1800);
+  }
+});
+$("drawer").addEventListener("input", ev => { const t = ev.target;
+  if(t.dataset.ts === "notes") TS.notes = t.value; if(t.dataset.ts === "tester") TS.tester = t.value; saveTS(); });
+$("drawer").addEventListener("change", ev => { const t = ev.target;
+  if(t.dataset.ts === "task"){ const i = Number(t.dataset.i); if(t.checked) TS.done.add(i); else TS.done.delete(i); t.closest(".task").classList.toggle("done", t.checked); saveTS(); } });
+
+render();
+</script>
+</body>
+</html>
